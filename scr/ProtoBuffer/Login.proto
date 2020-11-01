@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message LoginRequest
+{
+	bytes credentials = 1;
+}
+
+message LoginResponse
+{
+	enum Status {
+	  OK = 0;
+	  FAIL = 1;
+	}
+	Status status = 1;
+	bytes id = 2;
+}
