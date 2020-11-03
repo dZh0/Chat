@@ -18,9 +18,21 @@
     <ClInclude Include="..\scr\wxClient\ChatApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\scr\wxClient\ConnectDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scr\wxClient\ChatWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\scr\wxClient\ChatApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scr\wxClient\ConnectDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scr\wxClient\ChatWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -17,9 +17,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\scr\wxClient\ChatApp.h" />
+    <ClInclude Include="..\scr\wxClient\ConnectDialog.h" />
+    <ClInclude Include="..\scr\wxClient\ChatWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\scr\wxClient\ChatApp.cpp" />
+    <ClCompile Include="..\scr\wxClient\ChatWindow.cpp" />
+    <ClCompile Include="..\scr\wxClient\ConnectDialog.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
