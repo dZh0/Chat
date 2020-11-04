@@ -7,7 +7,6 @@ class ChatWindow : public wxFrame
 {
 public:
 	ChatWindow();
-	const int MESSAGE_PANNEL_ID = 500;
 	void OnMessageRecieved(wxCommandEvent& event);
 private:
 	void OnConnect(wxCommandEvent&);

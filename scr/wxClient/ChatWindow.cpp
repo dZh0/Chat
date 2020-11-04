@@ -1,4 +1,5 @@
 #include <wx/app.h>
+#include <wx/splitter.h>
 #include "ChatWindow.h"
 
 ChatWindow::ChatWindow()
@@ -17,17 +18,17 @@ ChatWindow::ChatWindow()
 	menuBar->Append(helpDropdown, "&Help");
 	SetMenuBar(menuBar);
 
-
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnConnect, this, ID_CONNECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnAbout, this, wxID_ABOUT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnExit, this, wxID_EXIT);
 
-	wxPanel* panel = new wxPanel(this, -1);
+	
 
-	wxBoxSizer* contentBox = new wxBoxSizer(wxHORIZONTAL);
-	wxListBox* conversationList = new wxListBox(panel, wxID_ANY, wxPoint(-1, -1), wxSize(200, -1), wxArrayString(40, "Item"));
-	contentBox->Add(conversationList, 1, wxEXPAND);
-
+	wxSplitterWindow* splitter = new  wxSplitterWindow(this);
+	splitter->SetMinimumPaneSize(20);
+	wxListBox* conversationList = new wxListBox(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxArrayString(40, "Item"));
+	
+	wxPanel* panel = new wxPanel(splitter, wxID_ANY);
 	wxBoxSizer* chatBox = new wxBoxSizer(wxVERTICAL);
 	messageBoard = new MessageBoard(panel, wxID_ANY);
 
@@ -37,9 +38,8 @@ ChatWindow::ChatWindow()
 
 	chatBox->Add(messageBoard, 1, wxEXPAND);
 	chatBox->Add(inputField, 0, wxEXPAND);
-	contentBox->Add(chatBox, 3, wxEXPAND);
-
-	panel->SetSizer(contentBox);
+	panel->SetSizer(chatBox);
+	splitter->SplitVertically(conversationList, panel, 200);
 
 	Centre();
 	// Status bar

@@ -4,10 +4,6 @@
 #include "ChatWindow.h"
 #include "ChatApp.h"
 
-
-constexpr char DEFAULT_SERVER_IP[] = "localhost";				// The IP of the server, the client is trying to connect to;
-constexpr char DEFAULT_PORT[] = "1234";								// The port of the server, the client is trying to connect to;
-
 wxIMPLEMENT_APP(ChatApp);
 
 bool ChatApp::OnInit()
