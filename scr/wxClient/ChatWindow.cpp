@@ -18,30 +18,31 @@ ChatWindow::ChatWindow()
 	menuBar->Append(helpDropdown, "&Help");
 	SetMenuBar(menuBar);
 
+	// Dropdown bindings
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnConnect, this, ID_CONNECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnAbout, this, wxID_ABOUT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnExit, this, wxID_EXIT);
-
 	
-
+	// Main window
 	wxSplitterWindow* splitter = new  wxSplitterWindow(this);
-	splitter->SetMinimumPaneSize(20);
-	wxListBox* conversationList = new wxListBox(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxArrayString(40, "Item"));
+	splitter->SetMinimumPaneSize(21);
+	convList = new ConversationList(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_SINGLE);
 	
 	wxPanel* panel = new wxPanel(splitter, wxID_ANY);
 	wxBoxSizer* chatBox = new wxBoxSizer(wxVERTICAL);
 	messageBoard = new MessageBoard(panel, wxID_ANY);
 
-	inputField = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(600, -1), wxTE_PROCESS_ENTER);
+	inputField = new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	inputField->SetHint(wxT("Enter message"));
-	inputField->Bind(wxEVT_TEXT_ENTER, &ChatWindow::OnSendMessage, this, wxID_ANY);
-
-	chatBox->Add(messageBoard, 1, wxEXPAND);
-	chatBox->Add(inputField, 0, wxEXPAND);
+	chatBox->Add(messageBoard, wxSizerFlags(1).Expand());
+	chatBox->Add(inputField, wxSizerFlags(0).Expand());
 	panel->SetSizer(chatBox);
-	splitter->SplitVertically(conversationList, panel, 200);
 
-	Centre();
+	// Main Window bindings
+	inputField->Bind(wxEVT_TEXT_ENTER, &ChatWindow::OnSendMessage, this);
+
+	splitter->SplitVertically(convList, panel, 200);
+
 	// Status bar
 	CreateStatusBar();
 	SetStatusText("Welcome to Chat!");
@@ -49,11 +50,11 @@ ChatWindow::ChatWindow()
 
 void ChatWindow::OnConnect(wxCommandEvent&)
 {
-	//GetParent()->Connect();
 }
 
 void ChatWindow::OnExit(wxCommandEvent& event)
 {
+	Disconnect();
 	Close(true);
 }
 
@@ -64,41 +65,15 @@ void ChatWindow::OnAbout(wxCommandEvent& event)
 
 void ChatWindow::OnMessageRecieved(wxCommandEvent& event)
 {
-	messageBoard->AddMessage(wxT("Thread"), event.GetString());
+	messageBoard->AddMessage(event.GetString(), "Thread");
 }
 
 void ChatWindow::OnSendMessage(wxCommandEvent& event)
 {
 	if (!inputField->IsEmpty())
 	{
-		messageBoard->AddMessage(wxT("Me"), inputField->GetValue());
+		messageBoard->AddMessage(inputField->GetValue(), "Me");
+		convList->AddConversation(inputField->GetValue());
 		inputField->Clear();
 	}
-}
-
-MessageBoard::MessageBoard(wxWindow* parent, wxWindowID id) :
-	wxScrolledWindow(parent, id)
-{
-	sizer = new wxBoxSizer(wxVERTICAL);
-	this->SetSizer(sizer);
-	this->FitInside();
-	this->SetScrollRate(-1, 5);
-}
-
-void MessageBoard::AddMessage(wxString senderName, wxString messageContent)
-{
-	TextMessage* msg = new TextMessage(this, wxID_ANY, senderName, messageContent);
-	sizer->Add(msg, 0, wxALL, 3);
-	this->SetSizer(sizer);
-	this->FitInside();
-	this->SetScrollRate(-1, 5);
-}
-
-TextMessage::TextMessage(wxWindow* parent, wxWindowID id, wxString senderName, wxString content) :wxPanel(parent, id)
-{
-	wxBoxSizer* hbox = new wxBoxSizer(wxHORIZONTAL);
-	hbox->Add(new wxButton(this, wxID_ANY, senderName), 0, wxALIGN_LEFT);
-	wxStaticText* msgText = new wxStaticText(this, wxID_ANY, content);
-	hbox->Add(msgText, 1);
-	this->SetSizer(hbox);
 }

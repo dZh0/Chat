@@ -24,6 +24,12 @@
     <ClInclude Include="..\scr\wxClient\ChatWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\scr\wxClient\MessageBoard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\scr\wxClient\ConversationList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\scr\wxClient\ChatApp.cpp">
@@ -33,6 +39,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\scr\wxClient\ChatWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scr\wxClient\MessageBoard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scr\wxClient\ConversationList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

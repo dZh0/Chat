@@ -1,8 +1,6 @@
 #pragma once
-#include <wx/wx.h>
+#include <wx/app.h>
 //#include "Client.h"
-
-
 
 class ChatApp : public wxApp
 {

@@ -1,7 +1,7 @@
 #pragma once
+#include "ConversationList.h"
+#include "MessageBoard.h"
 #include <wx/wx.h>
-
-class MessageBoard;
 
 class ChatWindow : public wxFrame
 {
@@ -14,21 +14,7 @@ private:
 	void OnAbout(wxCommandEvent&);
 	void OnSendMessage(wxCommandEvent& event);
 
+	ConversationList* convList = nullptr;
 	MessageBoard* messageBoard = nullptr;
 	wxTextCtrl* inputField = nullptr;
-};
-
-class MessageBoard : public wxScrolledWindow
-{
-public:
-	MessageBoard(wxWindow* parent, wxWindowID id = wxID_ANY);
-	virtual void AddMessage(wxString senderName, wxString messageContent);
-private:
-	wxBoxSizer* sizer = nullptr;
-};
-
-class TextMessage : public wxPanel
-{
-public:
-	TextMessage(wxWindow* parent, wxWindowID id, wxString senderName, wxString content);
 };

@@ -7,7 +7,7 @@ class ConnectDialog : public wxDialog
 public:
 	ConnectDialog();
 private:
-	wxString server = "localhost";
-	wxString port = "1234";
-	wxString name = "Bob";
+	wxString server	= "localhost";
+	wxString port	= "1234";
+	wxString name	= "Bob";
 };
