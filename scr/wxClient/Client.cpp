@@ -2,11 +2,11 @@
 #include "Client.h"
 
 
-bool ChatClient::Init()
+bool ChatClient::InitNetwork()
 {
 	if (SDLNet_Init() < 0)
 	{
-		errorMessage = "SDLNet_Init: " + (std::string)SDLNet_GetError();
+		errorMessage = "SDLNet_Init: " + std::string(SDLNet_GetError());
 		return false;
 	}
     return true;
@@ -17,24 +17,24 @@ bool ChatClient::ConnectTo(std::string host, Uint16 port)
 	IPaddress hostIp;
 	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
 	{
-		std::cerr << "SDLNet_ResolveHost: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_ResolveHost: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	TCPsocket clientSocket = SDLNet_TCP_Open(&hostIp);
 	if (!clientSocket)
 	{
-		std::cerr << "SDLNet_TCP_Open: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_TCP_Open: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	socketSet = SDLNet_AllocSocketSet(1);
 	if (!socketSet)
 	{
-		std::cerr << "SDLNet_AllocSocketSet: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	if (SDLNet_TCP_AddSocket(socketSet, clientSocket) < 1)
 	{
-		std::cerr << "SDLNet_AddSocket: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_AddSocket: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	socket = clientSocket;
@@ -60,13 +60,13 @@ bool ChatClient::Update()
 {
 	if (SDLNet_Read16(id) == 0)
 	{
-		std::cout << "Requesting login for \"" << (std::string)credentials << "\". . .\n";
+		std::cout << "Requesting login for \"" << std::string(credentials) << "\". . .\n";
 		RequestLogIn(credentials);
 	}
 	int socketsToProcess = SDLNet_CheckSockets(socketSet, ACTIVITY_CHECK_TIMEOUT);
 	if (socketsToProcess < 0)
 	{
-		std::cerr << "SDLNet_CheckSockets: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_CheckSockets: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	if (socketsToProcess > 0)
@@ -146,7 +146,7 @@ bool ChatClient::ReceiveMessage()
 		}
 		default:
 		{
-			std::cerr << "Unrecognised message type!\n";
+			errorMessage = std::string("Unrecognised message type!");
 			return false;
 		}
 	}
@@ -188,12 +188,12 @@ bool ChatClient::HandleMessage(const LoginResponse& message)
 	if (message.status() == message.OK)
 	{
 		memcpy(id, message.id().c_str(), sizeof(Uint16));
-		std::cerr << "Log-in successful. ID "<< SDLNet_Read16(id) <<"\n";
+		errorMessage = "Log-in successful. ID " + SDLNet_Read16(id);
 		return true;
 	}
 	else
 	{
-		std::cerr << "Log-in request failed!\n";
+		errorMessage = "Log-in request failed!";
 		//TODO: Handle failed log-in attempt...
 		return false;
 	}
@@ -207,7 +207,7 @@ bool ChatClient::HandleMessage(const SendMessageResponse& message) const
 	}
 	else
 	{
-		std::cerr << "Sending message failed!\n";
+		errorMessage = "Sending message failed!"; //WTF!!! Why does this fail!?
 		//TODO: Handle failed "send message" attempt...
 		return false;
 	}
@@ -234,7 +234,7 @@ bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType,
 	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
 	if (send < msgSize)
 	{
-		std::cerr << "SDLNet_TCP_Send: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	delete[] buffer;
@@ -248,7 +248,7 @@ bool ChatClient::Ping() const
 	size_t send = SDLNet_TCP_Send(socket, PING_MSG, 2);
 	if (send < 2)
 	{
-		std::cerr << "SDLNet_TCP_Send: " << SDLNet_GetError() << "\n";
+		errorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
 		return false;
 	}
 	return true;

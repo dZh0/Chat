@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "prj\Server.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProtocolBuffers", "prj\ProtocolBuffers.vcxproj", "{D4054434-3BE1-4355-A5C1-C2A815F86D42}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WxClient", "prj\WxClient.vcxproj", "{952F744D-55C8-495D-A72D-C1E76C4D7361}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxClient", "prj\WxClient.vcxproj", "{952F744D-55C8-495D-A72D-C1E76C4D7361}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "SDL_net.h"
+#include <SDL_net.h>
 #include "../ProtoBuffer/Message.h"
 
 constexpr Uint32 ACTIVITY_CHECK_TIMEOUT = 1000;	// How long the client will wait for activity (in [ms]);
@@ -13,9 +13,9 @@ public:
 
 	std::string credentials = "Bob";
 	char id[sizeof(Uint16)] = {};
-	std::string errorMessage = "";	//Used to store error 
+	mutable std::string errorMessage = "";	//Used to store error message
 
-	virtual bool Init();
+	virtual bool InitNetwork();
 	virtual bool ConnectTo(std::string host, Uint16 port);
 	virtual bool RequestLogIn(const std::string& credentials);
 	virtual bool Update();

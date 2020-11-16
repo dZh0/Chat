@@ -10,7 +10,13 @@ bool ChatApp::OnInit()
 {
 	ChatWindow* mainWindow = new ChatWindow();
 	mainWindow->Show(true);
-
+	if (!ChatClient::InitNetwork())
+	{
+		wxMessageBox(errorMessage, "Error", wxICON_ERROR);
+	}
+	ConnectDialog* connectPopup = new ConnectDialog();
+	connectPopup->Show(true);
+	/*
 	UpdateThread* updThread = new UpdateThread(mainWindow);
 	wxThreadError err = updThread->Create();
 	if (err != wxTHREAD_NO_ERROR)
@@ -25,12 +31,13 @@ bool ChatApp::OnInit()
 		return false;
 	}
 	mainWindow->Bind(EVT_NETWORK, &ChatWindow::OnMessageRecieved, mainWindow);
-	//Connect();
+	*/
 	return true;
 }
 
 wxDEFINE_EVENT(EVT_NETWORK, wxCommandEvent);
 
+/*
 void ChatApp::Connect()
 {
 	if (!isConnectionSet)
@@ -38,6 +45,16 @@ void ChatApp::Connect()
 		ConnectDialog* connectPopup = new ConnectDialog();
 		connectPopup->Show(true);
 	}
+}
+*/
+int ChatApp::OnExit()
+{
+	return 0;
+}
+
+void ChatApp::Test(wxCommandEvent& event)
+{
+	wxMessageBox("Works!!!", "Test");
 }
 
 UpdateThread::UpdateThread(wxFrame* parent) : m_parent(parent)

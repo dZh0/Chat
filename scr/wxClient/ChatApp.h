@@ -1,14 +1,13 @@
 #pragma once
 #include <wx/app.h>
-//#include "Client.h"
+#include "Client.h"
 
-class ChatApp : public wxApp
+class ChatApp : public wxApp, public ChatClient
 {
 public:
-	virtual bool OnInit();
-	virtual void Connect();
-private:
-	bool isConnectionSet = false;
+	virtual bool OnInit() override;
+	virtual int OnExit() override;
+	void Test(wxCommandEvent& event);
 };
 wxDECLARE_APP(ChatApp);
 

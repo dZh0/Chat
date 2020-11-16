@@ -1,4 +1,3 @@
-#include <wx/app.h>
 #include <wx/splitter.h>
 #include "ChatWindow.h"
 

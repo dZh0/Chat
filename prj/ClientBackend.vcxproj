@@ -10,12 +10,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\scr\ProtoBuffer\Message.h" />
+    <ClInclude Include="..\scr\wxClient\Client.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\scr\wxClient\Client.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ProtocolBuffers.vcxproj">
+      <Project>{d4054434-3be1-4355-a5c1-c2a815f86d42}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d4054434-3be1-4355-a5c1-c2a815f86d42}</ProjectGuid>
-    <RootNamespace>ProtocolBuffers</RootNamespace>
+    <ProjectGuid>{60A4627D-FE9A-4F51-A453-0999EE433ABC}</ProjectGuid>
+    <RootNamespace>Chat2</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ClientBackend</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -25,11 +38,11 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -37,21 +50,22 @@
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="SDL2_net_x64.props" />
     <Import Project="ProtoBuff.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="SDL2_net_x64.props" />
     <Import Project="ProtoBuff.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\obj\</IntDir>
-    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
     <OutDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <CustomBuildBeforeTargets>BuildGenerateSources</CustomBuildBeforeTargets>
     <OutDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\obj\</IntDir>
   </PropertyGroup>
@@ -59,22 +73,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <CustomBuildStep>
-      <Command>$(SolutionDir)Build_ProtoBufferFiles.bat</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Message>Bulding protocol buffer headers...</Message>
-      <Outputs>$(SolutionDir)scr\ProtoBuffer\*.pb.h;$(SolutionDir)scr\ProtoBuffer\*.pb.cpp</Outputs>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -84,7 +91,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\protobuf-3.13.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -93,28 +99,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <CustomBuildStep>
-      <Command>$(SolutionDir)Build_ProtoBufferFiles.bat</Command>
-      <Message>Bulding protocol buffer headers...</Message>
-      <Outputs>$(SolutionDir)scr\ProtoBuffer\*.pb.h;$(SolutionDir)scr\ProtoBuffer\*.pb.cpp</Outputs>
-    </CustomBuildStep>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\scr\ProtoBuffer\Login.pb.cc" />
-    <ClCompile Include="..\scr\ProtoBuffer\Message.pb.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\scr\ProtoBuffer\Login.pb.h" />
-    <ClInclude Include="..\scr\ProtoBuffer\Message.pb.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\scr\ProtoBuffer\Login.proto">
-      <FileType>Text</FileType>
-    </None>
-    <None Include="..\scr\ProtoBuffer\Message.proto">
-      <FileType>Text</FileType>
-    </None>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

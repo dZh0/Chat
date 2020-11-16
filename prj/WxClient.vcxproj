@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\scr\wxClient\ChatApp.h" />
+    <ClInclude Include="..\scr\wxClient\Client.h" />
     <ClInclude Include="..\scr\wxClient\ConnectDialog.h" />
     <ClInclude Include="..\scr\wxClient\ChatWindow.h" />
     <ClInclude Include="..\scr\wxClient\ConversationList.h" />
@@ -25,6 +26,7 @@
   <ItemGroup>
     <ClCompile Include="..\scr\wxClient\ChatApp.cpp" />
     <ClCompile Include="..\scr\wxClient\ChatWindow.cpp" />
+    <ClCompile Include="..\scr\wxClient\Client.cpp" />
     <ClCompile Include="..\scr\wxClient\ConnectDialog.cpp" />
     <ClCompile Include="..\scr\wxClient\ConversationList.cpp" />
     <ClCompile Include="..\scr\wxClient\MessageBoard.cpp" />
@@ -58,9 +60,13 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="WxWidgets.props" />
+    <Import Project="SDL2_net_x64.props" />
+    <Import Project="ProtoBuff.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="WxWidgets.props" />
+    <Import Project="SDL2_net_x64.props" />
+    <Import Project="ProtoBuff.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -70,7 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\obj\</IntDir>
+    <OutDir>..\build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

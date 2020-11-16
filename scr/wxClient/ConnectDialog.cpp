@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include "ChatApp.h"
 #include "ConnectDialog.h"
 
 ConnectDialog::ConnectDialog()
