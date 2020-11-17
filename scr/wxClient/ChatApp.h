@@ -7,7 +7,12 @@ class ChatApp : public wxApp, public ChatClient
 public:
 	virtual bool OnInit() override;
 	virtual int OnExit() override;
-	void Test(wxCommandEvent& event);
+	virtual void OnError(const std::string& errorMsg) const override;
+
+	//TODO: These should be at some point saved and loaded
+	wxString serverIP = "localhost";
+	wxString serverPort = "1234";
+	wxString userName = "Bob";
 };
 wxDECLARE_APP(ChatApp);
 

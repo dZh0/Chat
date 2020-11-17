@@ -12,11 +12,13 @@ public:
 	virtual ~ChatClient() {};
 
 	std::string credentials = "Bob";
+	std::string serverIP = "localhost";
+	Uint16 serverPort = 1234;
 	char id[sizeof(Uint16)] = {};
-	mutable std::string errorMessage = "";	//Used to store error message
 
+	virtual void OnError(const std::string &errorMsg) const;
 	virtual bool InitNetwork();
-	virtual bool ConnectTo(std::string host, Uint16 port);
+	virtual bool ConnectTo(const std::string& host, const Uint16 port);
 	virtual bool RequestLogIn(const std::string& credentials);
 	virtual bool Update();
 	virtual void OnMessageReceived();
@@ -29,8 +31,8 @@ public:
 	const T ReceiveProtoMessage(const TCPsocket socket) const;
 
 	virtual bool HandleMessage(const LoginResponse& message);
-	virtual bool HandleMessage(const SendMessageResponse& message) const;
-	virtual bool HandleMessage(const Message& message) const;
+	virtual bool HandleMessage(const SendMessageResponse& message);
+	virtual bool HandleMessage(const Message& message);
 
 	template<class T>
 	bool SendProtoMessage(const TCPsocket socket, const message::type msgType, const T& message) const;

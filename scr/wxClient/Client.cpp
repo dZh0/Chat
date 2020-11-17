@@ -2,39 +2,44 @@
 #include "Client.h"
 
 
+void ChatClient::OnError(const std::string& errorMsg) const
+{
+	std::cerr<<errorMsg;
+}
+
 bool ChatClient::InitNetwork()
 {
 	if (SDLNet_Init() < 0)
 	{
-		errorMessage = "SDLNet_Init: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_Init: " + std::string(SDLNet_GetError()));
 		return false;
 	}
     return true;
 }
 
-bool ChatClient::ConnectTo(std::string host, Uint16 port)
+bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
 {
 	IPaddress hostIp;
 	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
 	{
-		errorMessage = "SDLNet_ResolveHost: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_ResolveHost: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	TCPsocket clientSocket = SDLNet_TCP_Open(&hostIp);
 	if (!clientSocket)
 	{
-		errorMessage = "SDLNet_TCP_Open: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_TCP_Open: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	socketSet = SDLNet_AllocSocketSet(1);
 	if (!socketSet)
 	{
-		errorMessage = "SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	if (SDLNet_TCP_AddSocket(socketSet, clientSocket) < 1)
 	{
-		errorMessage = "SDLNet_AddSocket: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_AddSocket: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	socket = clientSocket;
@@ -45,14 +50,16 @@ bool ChatClient::ConnectTo(std::string host, Uint16 port)
 
 bool ChatClient::RequestLogIn(const std::string& credentials)
 {
-	bool result = false;
 	LoginRequest LoginRequestMsg = LoginRequest();
 	LoginRequestMsg.set_credentials((std::string)credentials);
 	if (SendProtoMessage(socket, message::type::LOGIN_REQUEST, LoginRequestMsg))
 	{
-		result = true;
+		return true;
 	}
-	return result;
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -66,7 +73,7 @@ bool ChatClient::Update()
 	int socketsToProcess = SDLNet_CheckSockets(socketSet, ACTIVITY_CHECK_TIMEOUT);
 	if (socketsToProcess < 0)
 	{
-		errorMessage = "SDLNet_CheckSockets: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_CheckSockets: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	if (socketsToProcess > 0)
@@ -146,7 +153,7 @@ bool ChatClient::ReceiveMessage()
 		}
 		default:
 		{
-			errorMessage = std::string("Unrecognised message type!");
+			OnError(std::string("Unrecognised message type!"));
 			return false;
 		}
 	}
@@ -188,18 +195,17 @@ bool ChatClient::HandleMessage(const LoginResponse& message)
 	if (message.status() == message.OK)
 	{
 		memcpy(id, message.id().c_str(), sizeof(Uint16));
-		errorMessage = "Log-in successful. ID " + SDLNet_Read16(id);
 		return true;
 	}
 	else
 	{
-		errorMessage = "Log-in request failed!";
+		OnError("Log-in request failed!");
 		//TODO: Handle failed log-in attempt...
 		return false;
 	}
 }
 
-bool ChatClient::HandleMessage(const SendMessageResponse& message) const
+bool ChatClient::HandleMessage(const SendMessageResponse& message)
 {
 	if (message.OK)
 	{
@@ -207,13 +213,13 @@ bool ChatClient::HandleMessage(const SendMessageResponse& message) const
 	}
 	else
 	{
-		errorMessage = "Sending message failed!"; //WTF!!! Why does this fail!?
+		OnError("Sending message failed!");
 		//TODO: Handle failed "send message" attempt...
 		return false;
 	}
 }
 
-bool ChatClient::HandleMessage(const Message& message) const
+bool ChatClient::HandleMessage(const Message& message)
 {
 	std::cout << message.sender_id() << ":\t" << message.data() << "\n";
 	return true;
@@ -234,7 +240,7 @@ bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType,
 	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
 	if (send < msgSize)
 	{
-		errorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	delete[] buffer;
@@ -248,7 +254,7 @@ bool ChatClient::Ping() const
 	size_t send = SDLNet_TCP_Send(socket, PING_MSG, 2);
 	if (send < 2)
 	{
-		errorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
+		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	return true;

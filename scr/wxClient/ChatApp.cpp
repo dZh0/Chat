@@ -12,49 +12,54 @@ bool ChatApp::OnInit()
 	mainWindow->Show(true);
 	if (!ChatClient::InitNetwork())
 	{
-		wxMessageBox(errorMessage, "Error", wxICON_ERROR);
+		mainWindow->Destroy();
 	}
-	ConnectDialog* connectPopup = new ConnectDialog();
-	connectPopup->Show(true);
-	/*
+	ConnectDialog* connectPopup = new ConnectDialog(serverIP, serverPort, userName);
+	if (connectPopup->ShowModal() == wxID_OK)
+	{
+		wxBusyInfo busyWindow("Connecting...", mainWindow);
+		if (ConnectTo(std::string(serverIP), wxAtoi(serverPort)))
+		{
+			busyWindow.UpdateLabel("Loggining in...");
+			RequestLogIn(std::string(userName));
+			while (id==0)
+			{
+				Update();
+				Sleep(1000);
+				//TODO: This will update to eternity so maybe add request attmpts and a graceful exit
+			}
+		}
+	}
+
 	UpdateThread* updThread = new UpdateThread(mainWindow);
 	wxThreadError err = updThread->Create();
 	if (err != wxTHREAD_NO_ERROR)
 	{
-		wxMessageBox(_("Couldn't create thread!"));
+		OnError("Can't create thread!");
 		return false;
 	}
 	err = updThread->Run();
 	if (err != wxTHREAD_NO_ERROR)
 	{
-		wxMessageBox(_("Couldn't run thread!"));
+		OnError("Couldn't run thread!");
 		return false;
 	}
 	mainWindow->Bind(EVT_NETWORK, &ChatWindow::OnMessageRecieved, mainWindow);
-	*/
+
 	return true;
 }
 
 wxDEFINE_EVENT(EVT_NETWORK, wxCommandEvent);
 
-/*
-void ChatApp::Connect()
-{
-	if (!isConnectionSet)
-	{
-		ConnectDialog* connectPopup = new ConnectDialog();
-		connectPopup->Show(true);
-	}
-}
-*/
 int ChatApp::OnExit()
 {
+	
 	return 0;
 }
 
-void ChatApp::Test(wxCommandEvent& event)
+void ChatApp::OnError(const std::string& errorMsg) const
 {
-	wxMessageBox("Works!!!", "Test");
+	wxMessageBox(errorMsg, "Error", wxICON_ERROR);
 }
 
 UpdateThread::UpdateThread(wxFrame* parent) : m_parent(parent)

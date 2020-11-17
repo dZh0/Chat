@@ -2,17 +2,17 @@
 #include "ChatApp.h"
 #include "ConnectDialog.h"
 
-ConnectDialog::ConnectDialog()
+ConnectDialog::ConnectDialog(wxString& serverIp, wxString& serverPort, wxString& userName)
 	: wxDialog(nullptr, wxID_ANY, "Connect to", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "ConnectDialog")
 {
 	wxPanel* panel = new wxPanel(this, -1);
 	wxFlexGridSizer* grid = new wxFlexGridSizer(3, 2, 9, 10);
 	grid->Add(new wxStaticText(panel, wxID_ANY, "Server IP:"));
-	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY, &server)), 1, wxEXPAND);
+	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY, &serverIp)), 1, wxEXPAND);
 	grid->Add(new wxStaticText(panel, wxID_ANY, "Server Socket:"));
-	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY | wxFILTER_DIGITS, &port)), 1, wxEXPAND);
+	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY | wxFILTER_DIGITS, &serverPort)), 1, wxEXPAND);
 	grid->Add(new wxStaticText(panel, wxID_ANY, "User name:"), 1, wxEXPAND);
-	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY, &name)), 1, wxEXPAND);
+	grid->Add(new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, wxTextValidator(wxFILTER_EMPTY, &userName)), 1, wxEXPAND);
 	grid->AddGrowableCol(1, 1);
 
 	wxBoxSizer* controls = new wxBoxSizer(wxHORIZONTAL);
