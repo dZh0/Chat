@@ -62,7 +62,7 @@ void ChatWindow::OnAbout(wxCommandEvent& event)
 	wxMessageBox("This about section will probably never be filled...", "About", wxOK | wxICON_INFORMATION);
 }
 
-void ChatWindow::OnMessageRecieved(wxCommandEvent& event)
+void ChatWindow::OnMessageRecieved(wxThreadEvent& event)
 {
 	messageBoard->AddMessage(event.GetString(), "Thread");
 }

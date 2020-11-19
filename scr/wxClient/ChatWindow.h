@@ -7,7 +7,7 @@ class ChatWindow : public wxFrame
 {
 public:
 	ChatWindow();
-	void OnMessageRecieved(wxCommandEvent& event);
+	void OnMessageRecieved(wxThreadEvent& event);
 private:
 	void OnConnect(wxCommandEvent&);
 	void OnExit(wxCommandEvent&);
