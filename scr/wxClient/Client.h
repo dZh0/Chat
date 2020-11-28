@@ -18,21 +18,23 @@ public:
 
 	virtual void OnError(const std::string &errorMsg) const;
 	virtual bool InitNetwork();
-	virtual bool ConnectTo(const std::string& host, const Uint16 port);
-	virtual bool RequestLogIn(const std::string& credentials);
+	bool ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, unsigned attemptCount = 5, Uint32 attemptTime = 3000);
+	bool RequestLogIn(const std::string& credentials);
 	virtual bool Update();
 	virtual void OnMessageReceived();
-	virtual void Disconnect();
+	void Disconnect();
+	virtual void OnDisconnect();
 
-	bool ReceiveMessage();
+	int ReceiveMessage();
 	int ReceiveSint16(const TCPsocket socket) const;
 
 	template<class T>
 	const T ReceiveProtoMessage(const TCPsocket socket) const;
 
-	virtual bool HandleMessage(const LoginResponse& message);
-	virtual bool HandleMessage(const SendMessageResponse& message);
-	virtual bool HandleMessage(const Message& message);
+	virtual void OnPingMessageRecieved() {};
+	virtual bool OnMessageReceived(const LoginResponse& message);
+	virtual bool OnMessageReceived(const SendMessageResponse& message);
+	virtual bool OnMessageReceived(const Message& message);
 
 	template<class T>
 	bool SendProtoMessage(const TCPsocket socket, const message::type msgType, const T& message) const;
@@ -44,3 +46,4 @@ private:
 	TCPsocket socket;
 	SDLNet_SocketSet socketSet;
 };
+

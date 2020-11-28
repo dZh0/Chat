@@ -1,12 +1,14 @@
 #include <wx/splitter.h>
 #include "ChatWindow.h"
 
+
+
 ChatWindow::ChatWindow()
 	: wxFrame(nullptr, wxID_ANY, "Chat Client", wxDefaultPosition, wxSize(800, 600))
 {
+	const wxWindowID ID_CONNECT = wxWindow::NewControlId();
 	// Dropdown menu bar
 	wxMenu* fileDropdown = new wxMenu;
-	const int ID_CONNECT = 40;
 	fileDropdown->Append(ID_CONNECT, "&Connect...\tCtrl-C", "Connect to server.");
 	fileDropdown->AppendSeparator();
 	fileDropdown->Append(wxID_EXIT);
@@ -54,7 +56,6 @@ void ChatWindow::OnConnect(wxCommandEvent&)
 void ChatWindow::OnExit(wxCommandEvent& event)
 {
 	Disconnect();
-	Close(true);
 }
 
 void ChatWindow::OnAbout(wxCommandEvent& event)

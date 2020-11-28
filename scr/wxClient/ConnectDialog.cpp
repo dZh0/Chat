@@ -2,8 +2,8 @@
 #include "ChatApp.h"
 #include "ConnectDialog.h"
 
-ConnectDialog::ConnectDialog(wxString& serverIp, wxString& serverPort, wxString& userName)
-	: wxDialog(nullptr, wxID_ANY, "Connect to", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "ConnectDialog")
+ConnectDialog::ConnectDialog(wxWindow* parent, wxString& serverIp, wxString& serverPort, wxString& userName)
+	: wxDialog(parent, wxID_ANY, "Connect to", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "ConnectDialog")
 {
 	wxPanel* panel = new wxPanel(this, -1);
 	wxFlexGridSizer* grid = new wxFlexGridSizer(3, 2, 9, 10);

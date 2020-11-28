@@ -17,49 +17,89 @@ bool ChatClient::InitNetwork()
     return true;
 }
 
-bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
+bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, unsigned attemptCount, Uint32 attemptTime)
 {
-	IPaddress hostIp;
-	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
+	std::string lastErrorMessage = "";
+	bool isServerSocketResolved = false;
+	bool isLoginSuccessful = false;
+	for(unsigned i = 0; i < attemptCount; i++)
 	{
-		OnError("SDLNet_ResolveHost: " + std::string(SDLNet_GetError()));
-		return false;
+		if (!isServerSocketResolved)
+		{
+			IPaddress hostIp;
+			if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
+			{
+				lastErrorMessage = "SDLNet_ResolveHost: " + std::string(SDLNet_GetError());
+				SDL_Delay(attemptTime);
+				continue;
+			}
+			TCPsocket serverSocket = SDLNet_TCP_Open(&hostIp);
+			if (!serverSocket)
+			{
+				lastErrorMessage = "SDLNet_TCP_Open: " + std::string(SDLNet_GetError());
+				SDL_Delay(attemptTime);
+				continue;
+			}
+			socketSet = SDLNet_AllocSocketSet(1);
+			if (!socketSet)
+			{
+				lastErrorMessage = "SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError());
+				SDL_Delay(attemptTime);
+				continue;
+			}
+			if (SDLNet_TCP_AddSocket(socketSet, serverSocket) < 1)
+			{
+				lastErrorMessage = "SDLNet_TCP_AddSocket: " + std::string(SDLNet_GetError());
+				SDL_Delay(attemptTime);
+				continue;
+			}
+			socket = serverSocket;
+			GOOGLE_PROTOBUF_VERIFY_VERSION;
+			isServerSocketResolved = true;
+		}
+		if (!RequestLogIn(credentials)) //METO: Should I request Log in on every attempt considering that TCP guarntees the server has recievet the message if this check fails
+		{
+			lastErrorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
+			SDL_Delay(attemptTime);
+			continue;
+		}
+		int socketsToProcess = SDLNet_CheckSockets(socketSet, attemptTime);
+		if (socketsToProcess < 0)
+		{
+			lastErrorMessage = "SDLNet_CheckSockets: " + std::string(SDLNet_GetError());
+			continue;
+		}
+		if (socketsToProcess > 0)
+		{
+			if (SDLNet_SocketReady(socket))
+			{
+				if (!ReceiveMessage())
+				{
+					continue;
+				}
+				else
+				{
+					//TODO: Here I'm not sure that the message recieved was login request "ok"...
+					isLoginSuccessful = true;
+					break;
+				}
+			}
+		}
 	}
-	TCPsocket clientSocket = SDLNet_TCP_Open(&hostIp);
-	if (!clientSocket)
+	isConnected = isServerSocketResolved && isLoginSuccessful;
+	if (!isConnected)
 	{
-		OnError("SDLNet_TCP_Open: " + std::string(SDLNet_GetError()));
-		return false;
+		OnError(lastErrorMessage);
+		Disconnect();
 	}
-	socketSet = SDLNet_AllocSocketSet(1);
-	if (!socketSet)
-	{
-		OnError("SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError()));
-		return false;
-	}
-	if (SDLNet_TCP_AddSocket(socketSet, clientSocket) < 1)
-	{
-		OnError("SDLNet_AddSocket: " + std::string(SDLNet_GetError()));
-		return false;
-	}
-	socket = clientSocket;
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
-	isConnected = true;
-	return true;
+	return isConnected;
 }
 
 bool ChatClient::RequestLogIn(const std::string& credentials)
 {
 	LoginRequest LoginRequestMsg = LoginRequest();
 	LoginRequestMsg.set_credentials((std::string)credentials);
-	if (SendProtoMessage(socket, message::type::LOGIN_REQUEST, LoginRequestMsg))
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return SendProtoMessage(socket, message::type::LOGIN_REQUEST, LoginRequestMsg);
 }
 
 
@@ -105,7 +145,7 @@ void ChatClient::OnMessageReceived()
 
 void ChatClient::Disconnect()
 {
-	if (socket != nullptr)
+	if (socket || isConnected)
 	{
 		SDLNet_TCP_DelSocket(socketSet, socket);
 		SDLNet_FreeSocketSet(socketSet);
@@ -114,51 +154,48 @@ void ChatClient::Disconnect()
 		socket = nullptr;
 		isConnected = false;
 	}
+	OnDisconnect();
 }
 
-bool ChatClient::ReceiveMessage()
+void ChatClient::OnDisconnect()
+{
+	std::cout << "DISCONNECTED\n"; 
+}
+
+int ChatClient::ReceiveMessage()
 {
 	int msgType = ReceiveSint16(socket);
-	if (msgType < 0)
-	{
-		Disconnect();
-		return false;
-	}
-	std::cout << "Receiveing message type [" << msgType << "] ";
 	switch((message::type)msgType)
 	{
 		case message::type::PING:
 		{
-			std::cout << "2 bytes of data...\n";
-			isOnNotice = true;
+			isOnNotice = true; //TODO: Make Thread safe
+			OnPingMessageRecieved();
 			break;
 		}
 		case message::type::LOGIN_RESPONSE:
 		{
 			LoginResponse msg = ReceiveProtoMessage<LoginResponse>(socket);
-			HandleMessage(msg);
-			break;
+			OnMessageReceived(msg);
 		}
 		case message::type::SEND_MESSAGE_RESPONSE:
 		{
 			SendMessageResponse msg = ReceiveProtoMessage<SendMessageResponse>(socket);
-			HandleMessage(msg);
+			OnMessageReceived(msg);
 			break;
 		}
 		case message::type::MESSAGE:
 		{
 			Message msg = ReceiveProtoMessage<Message>(socket);
-			HandleMessage(msg);
+			OnMessageReceived(msg);
 			break;
 		}
 		default:
 		{
-			OnError(std::string("Unrecognised message type!"));
-			return false;
+			return -1;
 		}
 	}
-
-	return true;
+	return msgType;
 }
 
 int ChatClient::ReceiveSint16(const TCPsocket socket) const
@@ -190,7 +227,7 @@ const T ChatClient::ReceiveProtoMessage(const TCPsocket socket) const
 	return message;
 }
 
-bool ChatClient::HandleMessage(const LoginResponse& message)
+bool ChatClient::OnMessageReceived(const LoginResponse& message)
 {
 	if (message.status() == message.OK)
 	{
@@ -199,13 +236,11 @@ bool ChatClient::HandleMessage(const LoginResponse& message)
 	}
 	else
 	{
-		OnError("Log-in request failed!");
-		//TODO: Handle failed log-in attempt...
 		return false;
 	}
 }
 
-bool ChatClient::HandleMessage(const SendMessageResponse& message)
+bool ChatClient::OnMessageReceived(const SendMessageResponse& message)
 {
 	if (message.OK)
 	{
@@ -215,11 +250,12 @@ bool ChatClient::HandleMessage(const SendMessageResponse& message)
 	{
 		OnError("Sending message failed!");
 		//TODO: Handle failed "send message" attempt...
+		//Probably the response should include a way for the client to identigy the message and resend it...
 		return false;
 	}
 }
 
-bool ChatClient::HandleMessage(const Message& message)
+bool ChatClient::OnMessageReceived(const Message& message)
 {
 	std::cout << message.sender_id() << ":\t" << message.data() << "\n";
 	return true;
@@ -240,7 +276,7 @@ bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType,
 	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
 	if (send < msgSize)
 	{
-		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
+		//OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	delete[] buffer;

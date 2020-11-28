@@ -6,5 +6,5 @@
 class ConnectDialog : public wxDialog
 {
 public:
-	ConnectDialog(wxString &serverIp, wxString &serverPort, wxString &userName);
+	ConnectDialog(wxWindow* parent, wxString &serverIp, wxString &serverPort, wxString &userName);
 };
