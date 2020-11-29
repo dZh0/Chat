@@ -45,14 +45,12 @@ void ChatApp::OnError(const std::string& errorMsg)
 	wxThreadEvent event(EVT_ERROR);
 	event.SetString(errorMsg);
 	QueueEvent(event.Clone());
-	//wxMessageBox(errorMsg, "Error", wxICON_ERROR | wxSTAY_ON_TOP);
 }
 
 void ChatApp::OnDisconnect()
 {
 	if (updateThread)
 	{
-		exitSignal.set_value();
 		updateThread->join();
 		delete(updateThread);
 	}
@@ -71,25 +69,23 @@ void ChatApp::Connect()
 		if (ConnectToServer(std::string(serverIP), wxAtoi(serverPort), std::string(userName), 2, 1000))
 		{
 			Bind(EVT_NETWORK, &ChatApp::OnMessageRecieved, this);
-			exitSignal = std::promise<void>();
-			updateThread = new std::thread(&ChatApp::ThreadTest, this, std::move(exitSignal.get_future()));
+			updateThread = new std::thread(&ChatApp::Update, this);
 		}
 	}
 }
 
-constexpr int MESSAGE_RECIEVED_ID = 10000;
-void ChatApp::ThreadTest(std::future<void> futureObj)
+void ChatApp::Update()
 {
-	int n=0;
 	while (IsConnected())
 	{
-		Sleep(5000);
-		//Update();
-		wxThreadEvent event(EVT_NETWORK);
-		event.SetString(wxString::Format("Test recieved message %i\nNext line of the message is made to test sizing and word warp (which currently does not work):\nLorem ipsum dolor sit amet, consectetur adipiscing elit.Quisque viverra nunc quis sodales fringilla.Aenean nibh velit, rutrum vel magna et, gravida rhoncus libero.Quisque eu gravida libero.Interdum et malesuada fames ac ante ipsum primis in faucibus.Aliquam ante nulla, vehicula finibus magna eu, egestas maximus odio.Morbi malesuada risus eget metus porttitor dapibus et ut magna.In scelerisque a mi eu commodo.Nullam dictum molestie nisi, tincidunt cursus ligula facilisis at.Cras quis leo at felis semper porta id a enim.Morbi ornare, felis in maximus lobortis, sem leo egestas enim, id varius sem ante gravida risus.Ut quis sem commodo, consectetur lacus quis, sagittis elit.Etiam molestie neque vitae risus blandit, et elementum felis volutpat.Etiam blandit est in porta convallis.Nulla facilisi.Proin posuere ut mi a porttitor.", n));
-		QueueEvent(event.Clone());
-		n++;
+		Sleep(1000);
+		ListenForMessage(1000);
 	}
 }
 
-
+void ChatApp::OnPingMessageRecieved()
+{
+	wxThreadEvent event(EVT_NETWORK);
+	event.SetString("Test ping recieved; The next line of the message is made to test sizing and word warp (which currently does not work):\nLorem ipsum dolor sit amet, consectetur adipiscing elit.Quisque viverra nunc quis sodales fringilla.Aenean nibh velit, rutrum vel magna et, gravida rhoncus libero.Quisque eu gravida libero.Interdum et malesuada fames ac ante ipsum primis in faucibus.Aliquam ante nulla, vehicula finibus magna eu, egestas maximus odio.Morbi malesuada risus eget metus porttitor dapibus et ut magna.In scelerisque a mi eu commodo.Nullam dictum molestie nisi, tincidunt cursus ligula facilisis at.Cras quis leo at felis semper porta id a enim.Morbi ornare, felis in maximus lobortis, sem leo egestas enim, id varius sem ante gravida risus.Ut quis sem commodo, consectetur lacus quis, sagittis elit.Etiam molestie neque vitae risus blandit, et elementum felis volutpat.Etiam blandit est in porta convallis.Nulla facilisi.Proin posuere ut mi a porttitor.");
+	QueueEvent(event.Clone());
+}

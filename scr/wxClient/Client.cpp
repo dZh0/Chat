@@ -13,22 +13,12 @@ bool ChatClient::IsConnected() const
 }
 
 bool ChatClient::InitNetwork()
-{
-	if (SDLNet_Init() < 0)
-	{
-		OnError("SDLNet_Init: " + std::string(SDLNet_GetError()));
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+{ 
+	return  (SDLNet_Init() >= 0);
 }
 
 bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, int attemptCount, Uint32 timeout)
 {
-	Disconnect(); //TODO: Maybe check if connected before disconnecting
-
 	bool isServerResolved = false;
 	bool isLoginRequestSent = false;
 	std::string lastErrorMessage = "";
@@ -56,7 +46,7 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 			}
 			isLoginRequestSent = true;
 		}
-		ListenForMessage(timeout, message::type::LOGIN_RESPONSE);
+		ListenForMessage(timeout, message::type::LOGIN_RESPONSE); // Will set isConnected=true of successful response is recieved
 	}
 	if (!isConnected)
 	{
@@ -67,6 +57,7 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 }
 bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
 {
+	Disconnect();
 	IPaddress hostIp;
 	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
 	{
@@ -101,14 +92,9 @@ bool ChatClient::RequestLogIn(const std::string& credentials)
 	return SendProtoMessage(serverSocket, message::type::LOGIN_REQUEST, LoginRequestMsg);
 }
 
-void ChatClient::LoginSuccessful()
-{
-	isConnected = true;
-}
-
 bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filter)
 {
-	std::unique_lock lock(mtx);
+	std::lock_guard lock(mtx);
 	int socketsToProcess = SDLNet_CheckSockets(socketSet, timeout);
 	if (socketsToProcess < 0)
 	{
@@ -156,6 +142,7 @@ bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filt
 					}
 					else
 					{
+						// TODO: Maybe resend message?
 						OnSendMessageFail();
 					}
 					break;
@@ -179,9 +166,11 @@ bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filt
 }
 
 
-void ChatClient::Disconnect() //Thread Safe
+void ChatClient::Disconnect()
 {
-	std::unique_lock lock(mtx);
+	isConnected = false;
+	OnDisconnect();
+	std::lock_guard lock(mtx);
 	if (serverSocket)
 	{
 		SDLNet_TCP_DelSocket(socketSet, serverSocket);
@@ -190,8 +179,6 @@ void ChatClient::Disconnect() //Thread Safe
 		SDLNet_TCP_Close(serverSocket);
 		serverSocket = nullptr;
 	}
-	isConnected = false;
-	OnDisconnect();
 }
 
 void ChatClient::OnDisconnect()
@@ -206,10 +193,14 @@ const T ChatClient::Receive() const
 	std::cout << msgSize << " bytes of data . . .\n";
 	T message;
 	google::protobuf::Message* msgPtr = static_cast<google::protobuf::Message*>(&message);
+	int bytesRead = 0;
 	if (msgSize > 0)
 	{
 		char* buffer = new char[msgSize];
-		int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		{
+			std::lock_guard lock(mtx);
+			bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		}
 		msgPtr->ParseFromArray(buffer, msgSize);
 		delete[] buffer;
 	}
@@ -222,7 +213,11 @@ const Sint16 ChatClient::Receive<Sint16>() const
 {
 	int msgSize = sizeof(Uint16);
 	char* buffer = new char[msgSize];
-	int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+	int bytesRead = 0;
+	{
+		std::lock_guard lock(mtx);
+		bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+	}
 	Sint16 result = -1;
 	if (bytesRead == msgSize)
 	{
@@ -233,14 +228,16 @@ const Sint16 ChatClient::Receive<Sint16>() const
 }
 
 void ChatClient::DiscardMessage() const
-// Not thread safe since mutual access to the socket is discouraged
 {
 	int msgSize = Receive<Sint16>();
 	std::cout << msgSize << " discarding . . .\n";
 	if (msgSize > 0)
 	{
 		char* buffer = new char[msgSize]; //@METO: Can I go with void* buffer and would the delete[] work on that type?
-		int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		{
+			std::lock_guard lock(mtx);
+			SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		}
 		delete[] buffer;
 	}
 }
@@ -263,15 +260,17 @@ bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType,
 	message.SerializeToArray(buffer + sizeof(Sint16) * 2, protoSize);
 
 	std::cout << "Sending " << msgSize << " bytes...\n";
-	std::unique_lock lock(mtx);
-	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
-	lock.unlock();
-	if (send < msgSize)
+	int bytesSent = 0;
+	{
+		std::lock_guard lock(mtx);
+		bytesSent = SDLNet_TCP_Send(socket, buffer, msgSize);
+	}
+	delete[] buffer;
+	if (bytesSent < msgSize)
 	{
 		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;
 	}
-	delete[] buffer;
 	return true;
 }
 
@@ -280,10 +279,12 @@ bool ChatClient::Ping()
 	const char PING_MSG[] = { '\0','\0' };
 	const int PING_SIZE = 2;
 	std::cout << "Sending 2 bytes...\n";
-	std::unique_lock lock(mtx);
-	size_t send = SDLNet_TCP_Send(serverSocket, PING_MSG, PING_SIZE);
-	lock.unlock();
-	if (send < PING_SIZE)
+	int bytesSent = 0;
+	{
+		std::lock_guard lock(mtx);
+		bytesSent = SDLNet_TCP_Send(serverSocket, PING_MSG, PING_SIZE);
+	}
+	if (bytesSent < PING_SIZE)
 	{
 		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;

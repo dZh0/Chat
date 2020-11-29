@@ -13,9 +13,10 @@ public:
 	// from ChatClient:
 	virtual void OnError(const std::string& errorMsg) override;
 	virtual void OnDisconnect() override;
+	virtual void OnPingMessageRecieved() override;
 
 	void Connect();
-	void ThreadTest(std::future<void> futureObj);
+	void Update();
 
 	void OnMessageRecieved(wxThreadEvent& event);
 	void HandleErrorEvent(wxThreadEvent& event);
@@ -26,7 +27,6 @@ public:
 	wxString userName = "Bob";
 protected:
 	std::thread* updateThread;
-	std::promise<void> exitSignal;
 };
 wxDECLARE_APP(ChatApp);
 

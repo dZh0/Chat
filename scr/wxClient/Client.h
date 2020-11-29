@@ -38,14 +38,13 @@ public:
 	bool Ping();
 
 private:
-	mutable std::shared_mutex mtx; //@METO: mutable, in order to enable a lock from const functions?
+	mutable std::recursive_mutex mtx; //@METO: mutable, in order to enable a lock from const functions?
 	TCPsocket serverSocket;
 	SDLNet_SocketSet socketSet;
 	std::atomic_bool isConnected = false;
 
 	bool ConnectTo(const std::string& host, const Uint16 port);
 	bool RequestLogIn(const std::string& credentials);
-	void LoginSuccessful();
 
 	template<class T>
 	const T Receive() const;
