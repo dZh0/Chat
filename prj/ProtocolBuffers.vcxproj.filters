@@ -29,6 +29,9 @@
     <ClInclude Include="..\scr\ProtoBuffer\Message.pb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\scr\ProtoBuffer\Message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\scr\ProtoBuffer\Login.proto">

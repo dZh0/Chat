@@ -7,16 +7,18 @@
 class ChatApp : public wxApp, public ChatClient
 {
 public:
-	//from wxApp
+	// from wxApp:
 	virtual bool OnInit() override;
 	virtual int OnExit() override;
-	//from ChatClient
-	virtual void OnError(const std::string& errorMsg) const override;
+	// from ChatClient:
+	virtual void OnError(const std::string& errorMsg) override;
 	virtual void OnDisconnect() override;
 
 	void Connect();
 	void ThreadTest(std::future<void> futureObj);
+
 	void OnMessageRecieved(wxThreadEvent& event);
+	void HandleErrorEvent(wxThreadEvent& event);
 
 	//TODO: These should be at some point saved and loaded
 	wxString serverIP = "localhost";
@@ -29,3 +31,4 @@ protected:
 wxDECLARE_APP(ChatApp);
 
 wxDECLARE_EVENT(EVT_NETWORK, wxThreadEvent);
+wxDECLARE_EVENT(EVT_ERROR, wxThreadEvent); // OnError() can potentially be called from within a thread so it needs to be wxThreadEvent.

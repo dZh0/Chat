@@ -1,8 +1,6 @@
 #include <wx/splitter.h>
 #include "ChatWindow.h"
 
-
-
 ChatWindow::ChatWindow()
 	: wxFrame(nullptr, wxID_ANY, "Chat Client", wxDefaultPosition, wxSize(800, 600))
 {

@@ -2,9 +2,14 @@
 #include "Client.h"
 
 
-void ChatClient::OnError(const std::string& errorMsg) const
+void ChatClient::OnError(const std::string& errorMsg) 
 {
 	std::cerr<<errorMsg;
+}
+
+bool ChatClient::IsConnected() const
+{
+	return isConnected;
 }
 
 bool ChatClient::InitNetwork()
@@ -14,79 +19,45 @@ bool ChatClient::InitNetwork()
 		OnError("SDLNet_Init: " + std::string(SDLNet_GetError()));
 		return false;
 	}
-    return true;
+	else
+	{
+		return true;
+	}
 }
 
-bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, unsigned attemptCount, Uint32 attemptTime)
+bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, int attemptCount, Uint32 timeout)
 {
+	Disconnect(); //TODO: Maybe check if connected before disconnecting
+
+	bool isServerResolved = false;
+	bool isLoginRequestSent = false;
 	std::string lastErrorMessage = "";
-	bool isServerSocketResolved = false;
-	bool isLoginSuccessful = false;
-	for(unsigned i = 0; i < attemptCount; i++)
+	int attempt = -1;
+	while(attempt < attemptCount && !isConnected)
 	{
-		if (!isServerSocketResolved)
+		attempt++;
+		if (!isServerResolved)		//@METO: Will "try-catch" be more graceful in this case?
 		{
-			IPaddress hostIp;
-			if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
+			if (!ConnectTo(host, port))
 			{
-				lastErrorMessage = "SDLNet_ResolveHost: " + std::string(SDLNet_GetError());
-				SDL_Delay(attemptTime);
+				SDL_Delay(timeout);
 				continue;
 			}
-			TCPsocket serverSocket = SDLNet_TCP_Open(&hostIp);
-			if (!serverSocket)
+			isServerResolved = true;
+		}
+		GOOGLE_PROTOBUF_VERIFY_VERSION;
+		if (!isLoginRequestSent)
+		{
+			if (!RequestLogIn(credentials))
 			{
-				lastErrorMessage = "SDLNet_TCP_Open: " + std::string(SDLNet_GetError());
-				SDL_Delay(attemptTime);
+				lastErrorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
+				SDL_Delay(timeout);
 				continue;
 			}
-			socketSet = SDLNet_AllocSocketSet(1);
-			if (!socketSet)
-			{
-				lastErrorMessage = "SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError());
-				SDL_Delay(attemptTime);
-				continue;
-			}
-			if (SDLNet_TCP_AddSocket(socketSet, serverSocket) < 1)
-			{
-				lastErrorMessage = "SDLNet_TCP_AddSocket: " + std::string(SDLNet_GetError());
-				SDL_Delay(attemptTime);
-				continue;
-			}
-			socket = serverSocket;
-			GOOGLE_PROTOBUF_VERIFY_VERSION;
-			isServerSocketResolved = true;
+			isLoginRequestSent = true;
 		}
-		if (!RequestLogIn(credentials)) //METO: Should I request Log in on every attempt considering that TCP guarntees the server has recievet the message if this check fails
-		{
-			lastErrorMessage = "SDLNet_TCP_Send: " + std::string(SDLNet_GetError());
-			SDL_Delay(attemptTime);
-			continue;
-		}
-		int socketsToProcess = SDLNet_CheckSockets(socketSet, attemptTime);
-		if (socketsToProcess < 0)
-		{
-			lastErrorMessage = "SDLNet_CheckSockets: " + std::string(SDLNet_GetError());
-			continue;
-		}
-		if (socketsToProcess > 0)
-		{
-			if (SDLNet_SocketReady(socket))
-			{
-				if (!ReceiveMessage())
-				{
-					continue;
-				}
-				else
-				{
-					//TODO: Here I'm not sure that the message recieved was login request "ok"...
-					isLoginSuccessful = true;
-					break;
-				}
-			}
-		}
+		ListenForMessage(timeout, message::type::LOGIN_RESPONSE);
 	}
-	isConnected = isServerSocketResolved && isLoginSuccessful;
 	if (!isConnected)
 	{
 		OnError(lastErrorMessage);
@@ -94,23 +65,51 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 	}
 	return isConnected;
 }
+bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
+{
+	IPaddress hostIp;
+	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
+	{
+		OnError("SDLNet_ResolveHost: " + std::string(SDLNet_GetError()));
+		return false;
+	}
+	TCPsocket socket = SDLNet_TCP_Open(&hostIp);
+	if (!socket)
+	{
+		OnError("SDLNet_TCP_Open: " + std::string(SDLNet_GetError()));
+		return false;
+	}
+	socketSet = SDLNet_AllocSocketSet(1);
+	if (!socketSet)
+	{
+		OnError("SDLNet_AllocSocketSet: " + std::string(SDLNet_GetError()));
+		return false;
+	}
+	if (SDLNet_TCP_AddSocket(socketSet, socket) < 1)
+	{
+		OnError("SDLNet_AddSocket: " + std::string(SDLNet_GetError()));
+		return false;
+	}
+	serverSocket = socket;
+	return true;
+}
 
 bool ChatClient::RequestLogIn(const std::string& credentials)
 {
 	LoginRequest LoginRequestMsg = LoginRequest();
 	LoginRequestMsg.set_credentials((std::string)credentials);
-	return SendProtoMessage(socket, message::type::LOGIN_REQUEST, LoginRequestMsg);
+	return SendProtoMessage(serverSocket, message::type::LOGIN_REQUEST, LoginRequestMsg);
 }
 
-
-bool ChatClient::Update()
+void ChatClient::LoginSuccessful()
 {
-	if (SDLNet_Read16(id) == 0)
-	{
-		std::cout << "Requesting login for \"" << std::string(credentials) << "\". . .\n";
-		RequestLogIn(credentials);
-	}
-	int socketsToProcess = SDLNet_CheckSockets(socketSet, ACTIVITY_CHECK_TIMEOUT);
+	isConnected = true;
+}
+
+bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filter)
+{
+	std::unique_lock lock(mtx);
+	int socketsToProcess = SDLNet_CheckSockets(socketSet, timeout);
 	if (socketsToProcess < 0)
 	{
 		OnError("SDLNet_CheckSockets: " + std::string(SDLNet_GetError()));
@@ -118,42 +117,80 @@ bool ChatClient::Update()
 	}
 	if (socketsToProcess > 0)
 	{
-		if (SDLNet_SocketReady(socket))
+		if (SDLNet_SocketReady(serverSocket))
 		{
-			ReceiveMessage();
-			OnMessageReceived();
+			message::type msgType = (message::type)Receive<Sint16>();
+			if (msgType != filter && filter != message::type::ALL)
+			{
+				DiscardMessage();
+				return false;
+			}
+			switch ((message::type)msgType)
+			{
+				case message::type::PING:
+				{
+					Ping();
+					OnPingMessageRecieved();
+					break;
+				}
+				case message::type::LOGIN_RESPONSE:
+				{
+					LoginResponse msg = Receive<LoginResponse>();
+					if (msg.status() == msg.OK)
+					{
+						isConnected = true;
+						OnLoginSuccessful();
+					}
+					else
+					{
+						OnLoginFailed();
+					}
+					break;
+				}
+				case message::type::SEND_MESSAGE_RESPONSE:
+				{
+					SendMessageResponse msg = Receive<SendMessageResponse>();
+					if (msg.OK)
+					{
+						OnSendMessageSuccess();
+					}
+					else
+					{
+						OnSendMessageFail();
+					}
+					break;
+				}
+				case message::type::MESSAGE:
+				{
+					Message msg = Receive<Message>();
+					OnMessageReceived(msg.sender_id(), msg.data());
+					break;
+				}
+				default:
+				{
+					DiscardMessage();
+					return false;
+				}
+			}
+			return true; // if (msgType == filter || filter == message::type::ALL)
 		}
 	}
-	if (isOnNotice)
-	{
-		//TODO: Test message should be replaced with ping to keep the connection alive but sends a message instead for test purposes
-		SendMessageRequest testMessage;
-		char target[2] ="";
-		SDLNet_Write16(2, target);
-		testMessage.set_recipient_id(target, sizeof(Uint16));
-		testMessage.set_data("This message should be sent to the second client.");
-		SendProtoMessage(socket, message::type::SEND_MESSAGE_REQUEST, testMessage);
-		isOnNotice = false;
-	}
-	return true;
+	return false; //if (socketsToProcess == 0)
 }
 
-void ChatClient::OnMessageReceived()
-{
-	//SendMessage("Test message - type: 1; size: 37+4 B");
-}
 
-void ChatClient::Disconnect()
+void ChatClient::Disconnect() //Thread Safe
 {
-	if (socket || isConnected)
+	std::unique_lock lock(mtx);
+	if (serverSocket)
 	{
-		SDLNet_TCP_DelSocket(socketSet, socket);
+		SDLNet_TCP_DelSocket(socketSet, serverSocket);
 		SDLNet_FreeSocketSet(socketSet);
 		socketSet = nullptr;
-		SDLNet_TCP_Close(socket);
-		socket = nullptr;
-		isConnected = false;
+		SDLNet_TCP_Close(serverSocket);
+		serverSocket = nullptr;
 	}
+	isConnected = false;
 	OnDisconnect();
 }
 
@@ -162,107 +199,60 @@ void ChatClient::OnDisconnect()
 	std::cout << "DISCONNECTED\n"; 
 }
 
-int ChatClient::ReceiveMessage()
-{
-	int msgType = ReceiveSint16(socket);
-	switch((message::type)msgType)
-	{
-		case message::type::PING:
-		{
-			isOnNotice = true; //TODO: Make Thread safe
-			OnPingMessageRecieved();
-			break;
-		}
-		case message::type::LOGIN_RESPONSE:
-		{
-			LoginResponse msg = ReceiveProtoMessage<LoginResponse>(socket);
-			OnMessageReceived(msg);
-		}
-		case message::type::SEND_MESSAGE_RESPONSE:
-		{
-			SendMessageResponse msg = ReceiveProtoMessage<SendMessageResponse>(socket);
-			OnMessageReceived(msg);
-			break;
-		}
-		case message::type::MESSAGE:
-		{
-			Message msg = ReceiveProtoMessage<Message>(socket);
-			OnMessageReceived(msg);
-			break;
-		}
-		default:
-		{
-			return -1;
-		}
-	}
-	return msgType;
-}
-
-int ChatClient::ReceiveSint16(const TCPsocket socket) const
-{
-	const int size = sizeof(Sint16);
-	char buffer[size];
-	int bytesRead = SDLNet_TCP_Recv(socket, buffer, size);
-	if (bytesRead < size)
-	{
-		return -1;
-	}
-	return (Sint16)SDLNet_Read16(buffer);
-}
-
 template<class T>
-const T ChatClient::ReceiveProtoMessage(const TCPsocket socket) const
+const T ChatClient::Receive() const
 {
-	int msgSize = ReceiveSint16(socket);
+	int msgSize = Receive<Sint16>();
 	std::cout << msgSize << " bytes of data . . .\n";
 	T message;
-	google::protobuf::Message* msgPtr = dynamic_cast<google::protobuf::Message*>(&message);
+	google::protobuf::Message* msgPtr = static_cast<google::protobuf::Message*>(&message);
 	if (msgSize > 0)
 	{
 		char* buffer = new char[msgSize];
-		int bytesRead = SDLNet_TCP_Recv(socket, buffer, msgSize);
+		int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
 		msgPtr->ParseFromArray(buffer, msgSize);
 		delete[] buffer;
 	}
 	return message;
 }
 
-bool ChatClient::OnMessageReceived(const LoginResponse& message)
+// Specialization
+template<>
+const Sint16 ChatClient::Receive<Sint16>() const
 {
-	if (message.status() == message.OK)
+	int msgSize = sizeof(Uint16);
+	char* buffer = new char[msgSize];
+	int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+	Sint16 result = -1;
+	if (bytesRead == msgSize)
 	{
-		memcpy(id, message.id().c_str(), sizeof(Uint16));
-		return true;
+		result = (Sint16)SDLNet_Read16(buffer);
 	}
-	else
+	delete[] buffer;
+	return result;
+}
+
+void ChatClient::DiscardMessage() const
+// Not thread safe since mutual access to the socket is discouraged
+{
+	int msgSize = Receive<Sint16>();
+	std::cout << msgSize << " discarding . . .\n";
+	if (msgSize > 0)
 	{
-		return false;
+		char* buffer = new char[msgSize]; //@METO: Can I go with void* buffer and would the delete[] work on that type?
+		int bytesRead = SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		delete[] buffer;
 	}
 }
 
-bool ChatClient::OnMessageReceived(const SendMessageResponse& message)
-{
-	if (message.OK)
-	{
-		return true;
-	}
-	else
-	{
-		OnError("Sending message failed!");
-		//TODO: Handle failed "send message" attempt...
-		//Probably the response should include a way for the client to identigy the message and resend it...
-		return false;
-	}
-}
 
-bool ChatClient::OnMessageReceived(const Message& message)
+void ChatClient::OnMessageReceived(const std::string& senderId, const std::string& message)
 {
-	std::cout << message.sender_id() << ":\t" << message.data() << "\n";
-	return true;
+	std::cout << senderId << ":\t" << message << "\n";
 }
 
 template<class T>
-bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType, const T& message) const
+bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType, const T& message)
 {
 	int protoSize = message.ByteSizeLong();
 	int msgSize = sizeof(Sint16) * 2 + protoSize;
@@ -273,22 +263,27 @@ bool ChatClient::SendProtoMessage(const TCPsocket socket, message::type msgType,
 	message.SerializeToArray(buffer + sizeof(Sint16) * 2, protoSize);
 
 	std::cout << "Sending " << msgSize << " bytes...\n";
+	std::unique_lock lock(mtx);
 	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
+	lock.unlock();
 	if (send < msgSize)
 	{
-		//OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
+		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;
 	}
 	delete[] buffer;
 	return true;
 }
 
-bool ChatClient::Ping() const
+bool ChatClient::Ping()
 {
-	std::cout << "Sending 2 bytes...\n";
 	const char PING_MSG[] = { '\0','\0' };
-	size_t send = SDLNet_TCP_Send(socket, PING_MSG, 2);
-	if (send < 2)
+	const int PING_SIZE = 2;
+	std::cout << "Sending 2 bytes...\n";
+	std::unique_lock lock(mtx);
+	size_t send = SDLNet_TCP_Send(serverSocket, PING_MSG, PING_SIZE);
+	lock.unlock();
+	if (send < PING_SIZE)
 	{
 		OnError("SDLNet_TCP_Send: " + std::string(SDLNet_GetError()));
 		return false;

@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\scr\ProtoBuffer\Login.pb.h" />
+    <ClInclude Include="..\scr\ProtoBuffer\Message.h" />
     <ClInclude Include="..\scr\ProtoBuffer\Message.pb.h" />
   </ItemGroup>
   <ItemGroup>

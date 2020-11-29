@@ -5,6 +5,7 @@ namespace message
 {
 	enum class type
 	{
+		ALL = -1,
 		PING = 0,
 		LOGIN_REQUEST = 1,
 		LOGIN_RESPONSE = 2,

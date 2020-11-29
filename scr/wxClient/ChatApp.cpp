@@ -6,11 +6,14 @@
 
 wxIMPLEMENT_APP(ChatApp);
 wxDEFINE_EVENT(EVT_NETWORK, wxThreadEvent);
+wxDEFINE_EVENT(EVT_ERROR, wxThreadEvent);
 
 bool ChatApp::OnInit()
 {
-	if (!ChatClient::InitNetwork())
+	Bind(EVT_ERROR, &ChatApp::HandleErrorEvent, this);
+	if (!ChatClient::InitNetwork()) 
 	{
+		wxMessageBox("Network inicialization failed", "Error", wxICON_ERROR | wxSTAY_ON_TOP); //@METO: InitNetwork()'s OnError() events have no time to be proceesed - hence the cryptic message.
 		exit(EXIT_FAILURE);
 	}
 	ChatWindow* mainWindow = new ChatWindow();
@@ -26,6 +29,10 @@ void ChatApp::OnMessageRecieved(wxThreadEvent& event)
 	event.Skip();
 }
 
+void ChatApp::HandleErrorEvent(wxThreadEvent& event)
+{
+	wxMessageBox(event.GetString(), "Error", wxICON_ERROR | wxSTAY_ON_TOP);
+}
 
 int ChatApp::OnExit()
 {
@@ -33,9 +40,12 @@ int ChatApp::OnExit()
 	return 0;
 }
 
-void ChatApp::OnError(const std::string& errorMsg) const
+void ChatApp::OnError(const std::string& errorMsg)
 {
-	wxMessageBox(errorMsg, "Error", wxICON_ERROR | wxSTAY_ON_TOP);
+	wxThreadEvent event(EVT_ERROR);
+	event.SetString(errorMsg);
+	QueueEvent(event.Clone());
+	//wxMessageBox(errorMsg, "Error", wxICON_ERROR | wxSTAY_ON_TOP);
 }
 
 void ChatApp::OnDisconnect()
@@ -50,7 +60,7 @@ void ChatApp::OnDisconnect()
 
 void ChatApp::Connect()
 {
-	if (isConnected)
+	if (IsConnected())
 	{
 		ChatClient::Disconnect();
 	}
@@ -71,7 +81,7 @@ constexpr int MESSAGE_RECIEVED_ID = 10000;
 void ChatApp::ThreadTest(std::future<void> futureObj)
 {
 	int n=0;
-	while (futureObj.wait_for(std::chrono::milliseconds(1)) == std::future_status::timeout)
+	while (IsConnected())
 	{
 		Sleep(5000);
 		//Update();
