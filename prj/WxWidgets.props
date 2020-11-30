@@ -20,7 +20,8 @@
       <Command>xcopy "$(ProjectDir)..\external\wxWidgets-3.1.4\lib\vc_x64_dll\wxbase314u_vc_x64_custom.dll" "$(TargetDir)" /Y
 xcopy "$(ProjectDir)..\external\wxWidgets-3.1.4\lib\vc_x64_dll\wxbase314ud_vc_x64_custom.dll" "$(TargetDir)" /Y
 xcopy "$(ProjectDir)..\external\wxWidgets-3.1.4\lib\vc_x64_dll\wxmsw314u_core_vc_x64_custom.dll" "$(TargetDir)" /Y
-xcopy "$(ProjectDir)..\external\wxWidgets-3.1.4\lib\vc_x64_dll\wxmsw314ud_core_vc_x64_custom.dll" "$(TargetDir)" /Y</Command>
+xcopy "$(ProjectDir)..\external\wxWidgets-3.1.4\lib\vc_x64_dll\wxmsw314ud_core_vc_x64_custom.dll" "$(TargetDir)" /Y
+%(Command)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />

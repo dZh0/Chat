@@ -14,7 +14,8 @@
     <PostBuildEvent>
       <Message>Copy required .DLLs</Message>
       <Command>xcopy "$(ProjectDir)..\external\SDL2-2.0.12\lib\x64\SDL2.dll" "$(TargetDir)" /Y
-xcopy "$(ProjectDir)..\external\SDL2_net-2.0.1\lib\x64\SDL2_net.dll" "$(TargetDir)" /Y</Command>
+xcopy "$(ProjectDir)..\external\SDL2_net-2.0.1\lib\x64\SDL2_net.dll" "$(TargetDir)" /Y
+$(Command)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup />
