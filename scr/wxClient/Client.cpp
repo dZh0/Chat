@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Client.h"
 
 
@@ -19,6 +18,7 @@ bool ChatClient::InitNetwork()
 
 bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, int attemptCount, Uint32 timeout)
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	bool isServerResolved = false;
 	bool isLoginRequestSent = false;
 	std::string lastErrorMessage = "";
@@ -26,7 +26,7 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 	while(attempt < attemptCount && !isConnected)
 	{
 		attempt++;
-		if (!isServerResolved)		//@METO: Will "try-catch" be more graceful in this case?
+		if (!isServerResolved)
 		{
 			if (!ConnectTo(host, port))
 			{
@@ -35,7 +35,6 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 			}
 			isServerResolved = true;
 		}
-		GOOGLE_PROTOBUF_VERIFY_VERSION;
 		if (!isLoginRequestSent)
 		{
 			if (!RequestLogIn(credentials))
@@ -55,6 +54,20 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 	}
 	return isConnected;
 }
+bool ChatClient::SendMessageToTarget(const uint32_t target, const std::string& message, Uint32 timeout)
+{
+	SendMessageRequest msg = SendMessageRequest();
+	msg.set_recipient_id(target);
+	msg.set_data(message);
+	if (!SendProtoMessage(serverSocket, message::type::SEND_MESSAGE_REQUEST, msg))
+	{
+		return false;
+	}
+	//@METO: This will block the client until a SEND_MESSAGE_RESPONSE is recieved. Might not be a good idea but otherwise we could
+	// have the client bombarding the server with messages that we cant destinguish from eacother.
+	return ListenForMessage(timeout, message::type::SEND_MESSAGE_RESPONSE);
+}
+
 bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
 {
 	Disconnect();
@@ -88,14 +101,17 @@ bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
 bool ChatClient::RequestLogIn(const std::string& credentials)
 {
 	LoginRequest LoginRequestMsg = LoginRequest();
-	LoginRequestMsg.set_credentials((std::string)credentials);
+	LoginRequestMsg.set_credentials(credentials);
 	return SendProtoMessage(serverSocket, message::type::LOGIN_REQUEST, LoginRequestMsg);
 }
 
 bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filter)
 {
-	std::lock_guard lock(mtx);
-	int socketsToProcess = SDLNet_CheckSockets(socketSet, timeout);
+	int socketsToProcess = 0;
+	{
+		std::lock_guard lock(mtx);
+		socketsToProcess = SDLNet_CheckSockets(socketSet, timeout);
+	}
 	if (socketsToProcess < 0)
 	{
 		OnError("SDLNet_CheckSockets: " + std::string(SDLNet_GetError()));
@@ -124,8 +140,13 @@ bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filt
 					LoginResponse msg = Receive<LoginResponse>();
 					if (msg.status() == msg.OK)
 					{
+						std::vector<std::pair<const message::idType, std::string>> conversationList;
+						for (auto conv : msg.conversations())
+						{
+							conversationList.push_back(std::make_pair(conv.id(), conv.name()));
+						}
 						isConnected = true;
-						OnLoginSuccessful();
+						OnLoginSuccessful(conversationList);
 					}
 					else
 					{
@@ -155,7 +176,7 @@ bool ChatClient::ListenForMessage(const Uint32 timeout, const message::type filt
 				}
 				default:
 				{
-					DiscardMessage();
+					Receive<void>();
 					return false;
 				}
 			}
@@ -207,7 +228,6 @@ const T ChatClient::Receive() const
 	return message;
 }
 
-// Specialization
 template<>
 const Sint16 ChatClient::Receive<Sint16>() const
 {
@@ -227,13 +247,14 @@ const Sint16 ChatClient::Receive<Sint16>() const
 	return result;
 }
 
-void ChatClient::DiscardMessage() const
+template<>
+const void ChatClient::Receive<void>() const
 {
 	int msgSize = Receive<Sint16>();
 	std::cout << msgSize << " discarding . . .\n";
 	if (msgSize > 0)
 	{
-		char* buffer = new char[msgSize]; //@METO: Can I go with void* buffer and would the delete[] work on that type?
+		char* buffer = new char[msgSize];
 		{
 			std::lock_guard lock(mtx);
 			SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
@@ -242,8 +263,22 @@ void ChatClient::DiscardMessage() const
 	}
 }
 
+void ChatClient::DiscardMessage() const
+{
+	int msgSize = Receive<Sint16>();
+	std::cout << msgSize << " discarding . . .\n";
+	if (msgSize > 0)
+	{
+		char* buffer = new char[msgSize];
+		{
+			std::lock_guard lock(mtx);
+			SDLNet_TCP_Recv(serverSocket, buffer, msgSize);
+		}
+		delete[] buffer;
+	}
+}
 
-void ChatClient::OnMessageReceived(const std::string& senderId, const std::string& message)
+void ChatClient::OnMessageReceived(const message::idType senderId, const std::string& message)
 {
 	std::cout << senderId << ":\t" << message << "\n";
 }
@@ -278,7 +313,6 @@ bool ChatClient::Ping()
 {
 	const char PING_MSG[] = { '\0','\0' };
 	const int PING_SIZE = 2;
-	std::cout << "Sending 2 bytes...\n";
 	int bytesSent = 0;
 	{
 		std::lock_guard lock(mtx);

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 message SendMessageRequest
 {
-	bytes recipient_id = 1;
+	fixed32 recipient_id = 1;
 	bytes data = 2;
 }
 
@@ -10,14 +10,14 @@ message SendMessageResponse
 {
 	enum Status {
 	  OK = 0;
-	  FAIL = 1;
+	  FAIL = -1;
 	}
 	Status status = 1;	
 }
 
 message Message 
 {
-	bytes sender_id = 1;
+	fixed32 sender_id = 1;
 	bytes data = 2;
 }
 

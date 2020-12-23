@@ -6,7 +6,7 @@
 
 constexpr int PORT = 1234;				// The port the server will open to listen for client connections;
 constexpr int MAX_CLIENTS = 5;			// The maximum number of clients able to connect to the server;
-constexpr Uint32 MAIN_LOOP_DELAY = 800;	// The delay after the server completes its main loop;
+constexpr Uint32 MAIN_LOOP_DELAY = 800;	// The delay after server completes its main loop;
 
 
 int main(int argc, char* argv[])
@@ -25,7 +25,6 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Main server loop
 	bool isTerminated = false;
 	while (!isTerminated)
 	{

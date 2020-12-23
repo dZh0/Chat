@@ -7,10 +7,17 @@ message LoginRequest
 
 message LoginResponse
 {
-	enum Status {
+	enum Status
+	{
 	  OK = 0;
-	  FAIL = 1;
+	  FAIL = -1;
 	}
 	Status status = 1;
-	bytes id = 2;
+	repeated NewConversation conversations = 2;
+}
+
+message NewConversation
+{
+	fixed32 id = 1;
+	string name = 2;
 }

@@ -72,13 +72,13 @@ PROTOBUF_NAMESPACE_CLOSE
 
 enum SendMessageResponse_Status : int {
   SendMessageResponse_Status_OK = 0,
-  SendMessageResponse_Status_FAIL = 1,
+  SendMessageResponse_Status_FAIL = -1,
   SendMessageResponse_Status_SendMessageResponse_Status_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   SendMessageResponse_Status_SendMessageResponse_Status_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool SendMessageResponse_Status_IsValid(int value);
-constexpr SendMessageResponse_Status SendMessageResponse_Status_Status_MIN = SendMessageResponse_Status_OK;
-constexpr SendMessageResponse_Status SendMessageResponse_Status_Status_MAX = SendMessageResponse_Status_FAIL;
+constexpr SendMessageResponse_Status SendMessageResponse_Status_Status_MIN = SendMessageResponse_Status_FAIL;
+constexpr SendMessageResponse_Status SendMessageResponse_Status_Status_MAX = SendMessageResponse_Status_OK;
 constexpr int SendMessageResponse_Status_Status_ARRAYSIZE = SendMessageResponse_Status_Status_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* SendMessageResponse_Status_descriptor();
@@ -210,25 +210,9 @@ class SendMessageRequest PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kRecipientIdFieldNumber = 1,
     kDataFieldNumber = 2,
+    kRecipientIdFieldNumber = 1,
   };
-  // bytes recipient_id = 1;
-  void clear_recipient_id();
-  const std::string& recipient_id() const;
-  void set_recipient_id(const std::string& value);
-  void set_recipient_id(std::string&& value);
-  void set_recipient_id(const char* value);
-  void set_recipient_id(const void* value, size_t size);
-  std::string* mutable_recipient_id();
-  std::string* release_recipient_id();
-  void set_allocated_recipient_id(std::string* recipient_id);
-  private:
-  const std::string& _internal_recipient_id() const;
-  void _internal_set_recipient_id(const std::string& value);
-  std::string* _internal_mutable_recipient_id();
-  public:
-
   // bytes data = 2;
   void clear_data();
   const std::string& data() const;
@@ -245,6 +229,15 @@ class SendMessageRequest PROTOBUF_FINAL :
   std::string* _internal_mutable_data();
   public:
 
+  // fixed32 recipient_id = 1;
+  void clear_recipient_id();
+  ::PROTOBUF_NAMESPACE_ID::uint32 recipient_id() const;
+  void set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_recipient_id() const;
+  void _internal_set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
   // @@protoc_insertion_point(class_scope:SendMessageRequest)
  private:
   class _Internal;
@@ -252,8 +245,8 @@ class SendMessageRequest PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr recipient_id_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 recipient_id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Message_2eproto;
 };
@@ -539,25 +532,9 @@ class Message PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kSenderIdFieldNumber = 1,
     kDataFieldNumber = 2,
+    kSenderIdFieldNumber = 1,
   };
-  // bytes sender_id = 1;
-  void clear_sender_id();
-  const std::string& sender_id() const;
-  void set_sender_id(const std::string& value);
-  void set_sender_id(std::string&& value);
-  void set_sender_id(const char* value);
-  void set_sender_id(const void* value, size_t size);
-  std::string* mutable_sender_id();
-  std::string* release_sender_id();
-  void set_allocated_sender_id(std::string* sender_id);
-  private:
-  const std::string& _internal_sender_id() const;
-  void _internal_set_sender_id(const std::string& value);
-  std::string* _internal_mutable_sender_id();
-  public:
-
   // bytes data = 2;
   void clear_data();
   const std::string& data() const;
@@ -574,6 +551,15 @@ class Message PROTOBUF_FINAL :
   std::string* _internal_mutable_data();
   public:
 
+  // fixed32 sender_id = 1;
+  void clear_sender_id();
+  ::PROTOBUF_NAMESPACE_ID::uint32 sender_id() const;
+  void set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_sender_id() const;
+  void _internal_set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Message)
  private:
   class _Internal;
@@ -581,8 +567,8 @@ class Message PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr sender_id_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 sender_id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Message_2eproto;
 };
@@ -597,66 +583,24 @@ class Message PROTOBUF_FINAL :
 #endif  // __GNUC__
 // SendMessageRequest
 
-// bytes recipient_id = 1;
+// fixed32 recipient_id = 1;
 inline void SendMessageRequest::clear_recipient_id() {
-  recipient_id_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  recipient_id_ = 0u;
 }
-inline const std::string& SendMessageRequest::recipient_id() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 SendMessageRequest::_internal_recipient_id() const {
+  return recipient_id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 SendMessageRequest::recipient_id() const {
   // @@protoc_insertion_point(field_get:SendMessageRequest.recipient_id)
   return _internal_recipient_id();
 }
-inline void SendMessageRequest::set_recipient_id(const std::string& value) {
+inline void SendMessageRequest::_internal_set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  recipient_id_ = value;
+}
+inline void SendMessageRequest::set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_recipient_id(value);
   // @@protoc_insertion_point(field_set:SendMessageRequest.recipient_id)
-}
-inline std::string* SendMessageRequest::mutable_recipient_id() {
-  // @@protoc_insertion_point(field_mutable:SendMessageRequest.recipient_id)
-  return _internal_mutable_recipient_id();
-}
-inline const std::string& SendMessageRequest::_internal_recipient_id() const {
-  return recipient_id_.Get();
-}
-inline void SendMessageRequest::_internal_set_recipient_id(const std::string& value) {
-  
-  recipient_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
-}
-inline void SendMessageRequest::set_recipient_id(std::string&& value) {
-  
-  recipient_id_.Set(
-    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:SendMessageRequest.recipient_id)
-}
-inline void SendMessageRequest::set_recipient_id(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  recipient_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
-              GetArena());
-  // @@protoc_insertion_point(field_set_char:SendMessageRequest.recipient_id)
-}
-inline void SendMessageRequest::set_recipient_id(const void* value,
-    size_t size) {
-  
-  recipient_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:SendMessageRequest.recipient_id)
-}
-inline std::string* SendMessageRequest::_internal_mutable_recipient_id() {
-  
-  return recipient_id_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline std::string* SendMessageRequest::release_recipient_id() {
-  // @@protoc_insertion_point(field_release:SendMessageRequest.recipient_id)
-  return recipient_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void SendMessageRequest::set_allocated_recipient_id(std::string* recipient_id) {
-  if (recipient_id != nullptr) {
-    
-  } else {
-    
-  }
-  recipient_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), recipient_id,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:SendMessageRequest.recipient_id)
 }
 
 // bytes data = 2;
@@ -749,66 +693,24 @@ inline void SendMessageResponse::set_status(::SendMessageResponse_Status value) 
 
 // Message
 
-// bytes sender_id = 1;
+// fixed32 sender_id = 1;
 inline void Message::clear_sender_id() {
-  sender_id_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  sender_id_ = 0u;
 }
-inline const std::string& Message::sender_id() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Message::_internal_sender_id() const {
+  return sender_id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Message::sender_id() const {
   // @@protoc_insertion_point(field_get:Message.sender_id)
   return _internal_sender_id();
 }
-inline void Message::set_sender_id(const std::string& value) {
+inline void Message::_internal_set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  sender_id_ = value;
+}
+inline void Message::set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_sender_id(value);
   // @@protoc_insertion_point(field_set:Message.sender_id)
-}
-inline std::string* Message::mutable_sender_id() {
-  // @@protoc_insertion_point(field_mutable:Message.sender_id)
-  return _internal_mutable_sender_id();
-}
-inline const std::string& Message::_internal_sender_id() const {
-  return sender_id_.Get();
-}
-inline void Message::_internal_set_sender_id(const std::string& value) {
-  
-  sender_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
-}
-inline void Message::set_sender_id(std::string&& value) {
-  
-  sender_id_.Set(
-    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:Message.sender_id)
-}
-inline void Message::set_sender_id(const char* value) {
-  GOOGLE_DCHECK(value != nullptr);
-  
-  sender_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
-              GetArena());
-  // @@protoc_insertion_point(field_set_char:Message.sender_id)
-}
-inline void Message::set_sender_id(const void* value,
-    size_t size) {
-  
-  sender_id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
-      reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:Message.sender_id)
-}
-inline std::string* Message::_internal_mutable_sender_id() {
-  
-  return sender_id_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline std::string* Message::release_sender_id() {
-  // @@protoc_insertion_point(field_release:Message.sender_id)
-  return sender_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-}
-inline void Message::set_allocated_sender_id(std::string* sender_id) {
-  if (sender_id != nullptr) {
-    
-  } else {
-    
-  }
-  sender_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), sender_id,
-      GetArena());
-  // @@protoc_insertion_point(field_set_allocated:Message.sender_id)
 }
 
 // bytes data = 2;

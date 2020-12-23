@@ -4,7 +4,8 @@
 class ConversationList: public wxListBox
 {
 public:
-	ConversationList(
+	ConversationList
+	(
 		wxWindow* parent,
 		wxWindowID id,
 		const wxPoint& pos = wxDefaultPosition,
@@ -13,6 +14,6 @@ public:
 		const wxValidator& validator = wxDefaultValidator,
 		const wxString& name = wxASCII_STR(wxListBoxNameStr)
 	);
-	void AddConversation(const wxString& convName);
-	void RemoveConversation(const wxString& convName);
+	void OnNewConversation(const wxCommandEvent& event);
+	void OnMessage(wxCommandEvent& event);
 };

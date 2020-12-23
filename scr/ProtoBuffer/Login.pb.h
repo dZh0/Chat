@@ -48,7 +48,7 @@ struct TableStruct_Login_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[2]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[3]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -61,20 +61,24 @@ extern LoginRequestDefaultTypeInternal _LoginRequest_default_instance_;
 class LoginResponse;
 class LoginResponseDefaultTypeInternal;
 extern LoginResponseDefaultTypeInternal _LoginResponse_default_instance_;
+class NewConversation;
+class NewConversationDefaultTypeInternal;
+extern NewConversationDefaultTypeInternal _NewConversation_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::LoginRequest* Arena::CreateMaybeMessage<::LoginRequest>(Arena*);
 template<> ::LoginResponse* Arena::CreateMaybeMessage<::LoginResponse>(Arena*);
+template<> ::NewConversation* Arena::CreateMaybeMessage<::NewConversation>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 
 enum LoginResponse_Status : int {
   LoginResponse_Status_OK = 0,
-  LoginResponse_Status_FAIL = 1,
+  LoginResponse_Status_FAIL = -1,
   LoginResponse_Status_LoginResponse_Status_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   LoginResponse_Status_LoginResponse_Status_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool LoginResponse_Status_IsValid(int value);
-constexpr LoginResponse_Status LoginResponse_Status_Status_MIN = LoginResponse_Status_OK;
-constexpr LoginResponse_Status LoginResponse_Status_Status_MAX = LoginResponse_Status_FAIL;
+constexpr LoginResponse_Status LoginResponse_Status_Status_MIN = LoginResponse_Status_FAIL;
+constexpr LoginResponse_Status LoginResponse_Status_Status_MAX = LoginResponse_Status_OK;
 constexpr int LoginResponse_Status_Status_ARRAYSIZE = LoginResponse_Status_Status_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LoginResponse_Status_descriptor();
@@ -380,24 +384,26 @@ class LoginResponse PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kIdFieldNumber = 2,
+    kConversationsFieldNumber = 2,
     kStatusFieldNumber = 1,
   };
-  // bytes id = 2;
-  void clear_id();
-  const std::string& id() const;
-  void set_id(const std::string& value);
-  void set_id(std::string&& value);
-  void set_id(const char* value);
-  void set_id(const void* value, size_t size);
-  std::string* mutable_id();
-  std::string* release_id();
-  void set_allocated_id(std::string* id);
+  // repeated .NewConversation conversations = 2;
+  int conversations_size() const;
   private:
-  const std::string& _internal_id() const;
-  void _internal_set_id(const std::string& value);
-  std::string* _internal_mutable_id();
+  int _internal_conversations_size() const;
   public:
+  void clear_conversations();
+  ::NewConversation* mutable_conversations(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation >*
+      mutable_conversations();
+  private:
+  const ::NewConversation& _internal_conversations(int index) const;
+  ::NewConversation* _internal_add_conversations();
+  public:
+  const ::NewConversation& conversations(int index) const;
+  ::NewConversation* add_conversations();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation >&
+      conversations() const;
 
   // .LoginResponse.Status status = 1;
   void clear_status();
@@ -415,8 +421,163 @@ class LoginResponse PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation > conversations_;
   int status_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_Login_2eproto;
+};
+// -------------------------------------------------------------------
+
+class NewConversation PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:NewConversation) */ {
+ public:
+  inline NewConversation() : NewConversation(nullptr) {}
+  virtual ~NewConversation();
+
+  NewConversation(const NewConversation& from);
+  NewConversation(NewConversation&& from) noexcept
+    : NewConversation() {
+    *this = ::std::move(from);
+  }
+
+  inline NewConversation& operator=(const NewConversation& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline NewConversation& operator=(NewConversation&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const NewConversation& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const NewConversation* internal_default_instance() {
+    return reinterpret_cast<const NewConversation*>(
+               &_NewConversation_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(NewConversation& a, NewConversation& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(NewConversation* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(NewConversation* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline NewConversation* New() const final {
+    return CreateMaybeMessage<NewConversation>(nullptr);
+  }
+
+  NewConversation* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<NewConversation>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const NewConversation& from);
+  void MergeFrom(const NewConversation& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(NewConversation* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "NewConversation";
+  }
+  protected:
+  explicit NewConversation(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_Login_2eproto);
+    return ::descriptor_table_Login_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kNameFieldNumber = 2,
+    kIdFieldNumber = 1,
+  };
+  // string name = 2;
+  void clear_name();
+  const std::string& name() const;
+  void set_name(const std::string& value);
+  void set_name(std::string&& value);
+  void set_name(const char* value);
+  void set_name(const char* value, size_t size);
+  std::string* mutable_name();
+  std::string* release_name();
+  void set_allocated_name(std::string* name);
+  private:
+  const std::string& _internal_name() const;
+  void _internal_set_name(const std::string& value);
+  std::string* _internal_mutable_name();
+  public:
+
+  // fixed32 id = 1;
+  void clear_id();
+  ::PROTOBUF_NAMESPACE_ID::uint32 id() const;
+  void set_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_id() const;
+  void _internal_set_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:NewConversation)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Login_2eproto;
 };
@@ -517,71 +678,136 @@ inline void LoginResponse::set_status(::LoginResponse_Status value) {
   // @@protoc_insertion_point(field_set:LoginResponse.status)
 }
 
-// bytes id = 2;
-inline void LoginResponse::clear_id() {
-  id_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+// repeated .NewConversation conversations = 2;
+inline int LoginResponse::_internal_conversations_size() const {
+  return conversations_.size();
 }
-inline const std::string& LoginResponse::id() const {
-  // @@protoc_insertion_point(field_get:LoginResponse.id)
+inline int LoginResponse::conversations_size() const {
+  return _internal_conversations_size();
+}
+inline void LoginResponse::clear_conversations() {
+  conversations_.Clear();
+}
+inline ::NewConversation* LoginResponse::mutable_conversations(int index) {
+  // @@protoc_insertion_point(field_mutable:LoginResponse.conversations)
+  return conversations_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation >*
+LoginResponse::mutable_conversations() {
+  // @@protoc_insertion_point(field_mutable_list:LoginResponse.conversations)
+  return &conversations_;
+}
+inline const ::NewConversation& LoginResponse::_internal_conversations(int index) const {
+  return conversations_.Get(index);
+}
+inline const ::NewConversation& LoginResponse::conversations(int index) const {
+  // @@protoc_insertion_point(field_get:LoginResponse.conversations)
+  return _internal_conversations(index);
+}
+inline ::NewConversation* LoginResponse::_internal_add_conversations() {
+  return conversations_.Add();
+}
+inline ::NewConversation* LoginResponse::add_conversations() {
+  // @@protoc_insertion_point(field_add:LoginResponse.conversations)
+  return _internal_add_conversations();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation >&
+LoginResponse::conversations() const {
+  // @@protoc_insertion_point(field_list:LoginResponse.conversations)
+  return conversations_;
+}
+
+// -------------------------------------------------------------------
+
+// NewConversation
+
+// fixed32 id = 1;
+inline void NewConversation::clear_id() {
+  id_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 NewConversation::_internal_id() const {
+  return id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 NewConversation::id() const {
+  // @@protoc_insertion_point(field_get:NewConversation.id)
   return _internal_id();
 }
-inline void LoginResponse::set_id(const std::string& value) {
+inline void NewConversation::_internal_set_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  id_ = value;
+}
+inline void NewConversation::set_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_id(value);
-  // @@protoc_insertion_point(field_set:LoginResponse.id)
+  // @@protoc_insertion_point(field_set:NewConversation.id)
 }
-inline std::string* LoginResponse::mutable_id() {
-  // @@protoc_insertion_point(field_mutable:LoginResponse.id)
-  return _internal_mutable_id();
+
+// string name = 2;
+inline void NewConversation::clear_name() {
+  name_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
-inline const std::string& LoginResponse::_internal_id() const {
-  return id_.Get();
+inline const std::string& NewConversation::name() const {
+  // @@protoc_insertion_point(field_get:NewConversation.name)
+  return _internal_name();
 }
-inline void LoginResponse::_internal_set_id(const std::string& value) {
+inline void NewConversation::set_name(const std::string& value) {
+  _internal_set_name(value);
+  // @@protoc_insertion_point(field_set:NewConversation.name)
+}
+inline std::string* NewConversation::mutable_name() {
+  // @@protoc_insertion_point(field_mutable:NewConversation.name)
+  return _internal_mutable_name();
+}
+inline const std::string& NewConversation::_internal_name() const {
+  return name_.Get();
+}
+inline void NewConversation::_internal_set_name(const std::string& value) {
   
-  id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
+  name_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value, GetArena());
 }
-inline void LoginResponse::set_id(std::string&& value) {
+inline void NewConversation::set_name(std::string&& value) {
   
-  id_.Set(
+  name_.Set(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:LoginResponse.id)
+  // @@protoc_insertion_point(field_set_rvalue:NewConversation.name)
 }
-inline void LoginResponse::set_id(const char* value) {
+inline void NewConversation::set_name(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
-  id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+  name_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
               GetArena());
-  // @@protoc_insertion_point(field_set_char:LoginResponse.id)
+  // @@protoc_insertion_point(field_set_char:NewConversation.name)
 }
-inline void LoginResponse::set_id(const void* value,
+inline void NewConversation::set_name(const char* value,
     size_t size) {
   
-  id_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
+  name_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(
       reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:LoginResponse.id)
+  // @@protoc_insertion_point(field_set_pointer:NewConversation.name)
 }
-inline std::string* LoginResponse::_internal_mutable_id() {
+inline std::string* NewConversation::_internal_mutable_name() {
   
-  return id_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  return name_.Mutable(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
-inline std::string* LoginResponse::release_id() {
-  // @@protoc_insertion_point(field_release:LoginResponse.id)
-  return id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+inline std::string* NewConversation::release_name() {
+  // @@protoc_insertion_point(field_release:NewConversation.name)
+  return name_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
-inline void LoginResponse::set_allocated_id(std::string* id) {
-  if (id != nullptr) {
+inline void NewConversation::set_allocated_name(std::string* name) {
+  if (name != nullptr) {
     
   } else {
     
   }
-  id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), id,
+  name_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), name,
       GetArena());
-  // @@protoc_insertion_point(field_set_allocated:LoginResponse.id)
+  // @@protoc_insertion_point(field_set_allocated:NewConversation.name)
 }
 
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 

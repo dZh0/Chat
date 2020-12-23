@@ -1,29 +1,52 @@
-#include <iostream>
+﻿#include <iostream>
 #include "Server.h"
-
 
 ChatServer::~ChatServer()
 {
 	Disconnect();
 }
 
-bool ChatServer::Init(int port, int _maxConnections)
+bool ChatServer::Init(int port, int maxClients)
 {
+	Disconnect(); //@METO: This shouldn't be neeed unless someone calls Init() a second time. Should I remove it?
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-	if (!OpenPort(port))
+	IPaddress hostIp;
+	if (SDLNet_ResolveHost(&hostIp, nullptr, port) < 0)
 	{
+		std::cerr << "SDLNet_ResolveHost: " << SDLNet_GetError() << "\n";
 		return false;
 	}
-	if (!SetMaxConnections(_maxConnections))
+	listeningSocket = SDLNet_TCP_Open(&hostIp);
+	if (!listeningSocket)
 	{
+		std::cerr << "SDLNet_TCP_Open: " << SDLNet_GetError() << "\n";
 		return false;
+	}
+	socketSet = SDLNet_AllocSocketSet(maxClients + 1);
+	if (!socketSet)
+	{
+		std::cerr << "SDLNet_AllocSocketSet: " << SDLNet_GetError() << "\n";
+		return false;
+	}
+	if (SDLNet_TCP_AddSocket(socketSet, listeningSocket) < 0)
+	{
+		std::cerr << "SDLNet_AddSocket: " << SDLNet_GetError() << "\n";
+		return false;
+	}
+	maxConnections = maxClients;
+	if (clientArr.size() > maxClients)
+	{
+		clientArr.resize(maxClients);
+	}
+	else
+	{
+		clientArr.reserve(maxClients);
 	}
 	clientIdCounter = 1;
 	return true;
 }
 
-
-bool ChatServer::Update()
+bool ChatServer::Update() //TODO: Check thoroughly
 {
 	// Check sockets
 	int socketsToProcess = SDLNet_CheckSockets(socketSet, ACTIVITY_CHECK_TIMEOUT);
@@ -41,7 +64,7 @@ bool ChatServer::Update()
 			ClientData* client = AcceptConnection();
 			if (client)
 			{
-				std::cout << "Client_" << client->id << " CONNECTED!\n";
+				std::cout << "Client CONNECTED!\n";
 			}
 		}
 	}
@@ -86,72 +109,16 @@ bool ChatServer::Update()
 	return true;
 }
 
-void ChatServer::OnMessageReceived(ClientData& client)
+void ChatServer::OnMessageReceived(ClientData& client) //???
 {
-	client.checkTime = SDL_GetTicks() + INACTIVITY_TIME - NOTICE_TIME;;
+	client.lastMesageTime = SDL_GetTicks();
 	client.onNotice = false;
-	nextActivityCheckSceduleTime = (nextActivityCheckSceduleTime > client.checkTime) ? client.checkTime : nextActivityCheckSceduleTime;
+	Uint32 nextClientCheckTime = client.lastMesageTime + NOTICE_TIME;
+	if (nextActivityCheckSceduleTime > nextClientCheckTime)
+	nextActivityCheckSceduleTime = (nextActivityCheckSceduleTime > nextClientCheckTime) ? nextClientCheckTime : nextActivityCheckSceduleTime;
 }
+
 void ChatServer::Disconnect()
-{
-	if (listeningSocket != nullptr)
-	{
-		ClearSocketSet();
-		SDLNet_TCP_Close(listeningSocket);
-		listeningSocket = nullptr;
-		clientArr.clear();
-	}
-}
-
-bool ChatServer::OpenPort(int port)
-{
-	Disconnect();
-	IPaddress hostIp;
-	if (SDLNet_ResolveHost(&hostIp, nullptr, port) < 0)
-	{
-		std::cerr << "SDLNet_ResolveHost: " << SDLNet_GetError() << "\n";
-		return false;
-	}
-	listeningSocket = SDLNet_TCP_Open(&hostIp);
-	if (!listeningSocket)
-	{
-		std::cerr << "SDLNet_TCP_Open: " << SDLNet_GetError() << "\n";
-		listeningSocket = nullptr;
-		return false;
-	}
-	return true;
-}
-
-bool ChatServer::SetMaxConnections(int _maxConnections)
-{
-	if (maxConnections == _maxConnections)
-	{
-		return true;
-	}
-	maxConnections = _maxConnections;
-	ClearSocketSet();
-	socketSet = SDLNet_AllocSocketSet(maxConnections + 1);
-	if (!socketSet)
-	{
-		std::cerr << "SDLNet_AllocSocketSet: " << SDLNet_GetError() << "\n";
-		return false;
-	}
-	if (clientArr.size() > maxConnections)
-	{
-		clientArr.resize(maxConnections);
-	}
-	else
-	{
-		clientArr.reserve(maxConnections);
-	}
-	if(FillSocketSet() < 0)
-	{
-		return false;
-	}
-	return true;
-}
-
-void ChatServer::ClearSocketSet()
 {
 	if (socketSet != nullptr)
 	{
@@ -163,33 +130,12 @@ void ChatServer::ClearSocketSet()
 		SDLNet_FreeSocketSet(socketSet);
 		socketSet = nullptr;
 	}
-}
-
-int ChatServer::FillSocketSet()
-{
-	int usedSockets = SDLNet_TCP_AddSocket(socketSet, listeningSocket);
-	if (usedSockets < 0)
+	if (listeningSocket != nullptr)
 	{
-		std::cerr << "SDLNet_AddSocket: " << SDLNet_GetError() << "\n";
-		return usedSockets;
+		SDLNet_TCP_Close(listeningSocket);
+		listeningSocket = nullptr; //@METO: Not sure if this is necesry but the state of listeningSocket is not clear in the doc after calling SDLNet_FreeSocketSet();
+		clientArr.clear();
 	}
-	for (ClientData& client : clientArr)
-	{
-		if (usedSockets < maxConnections + 1)
-		{
-			usedSockets = SDLNet_TCP_AddSocket(socketSet, client.socket);
-			if ( usedSockets < 0)
-			{
-				std::cerr << "SDLNet_AddSocket: " << SDLNet_GetError() << "\n";
-				return usedSockets;
-			}
-		}
-		else
-		{
-			return usedSockets;
-		}
-	}
-	return usedSockets;
 }
 
 bool ChatServer::ReceiveMessage(ClientData& client)
@@ -223,9 +169,9 @@ bool ChatServer::ReceiveMessage(ClientData& client)
 		{
 			SendMessageRequest msg = ReceiveProtoMessage<SendMessageRequest>(client.socket);
 			std::cout << "Transfering message from " << client.credentials << " to " << msg.recipient_id() << " . . .\n";
-			SendMessageResponse result = ForwardMessage(client.id, msg.recipient_id(), msg.data());
+			//SendMessageResponse result = ForwardMessage(client.id, msg.recipient_id(), msg.data());
 			std::cout << "Send message response to \"" << client.credentials << "\". . .\n";
-			SendProtoMessage(client.socket, message::type::SEND_MESSAGE_RESPONSE, result);
+			//SendProtoMessage(client.socket, message::type::SEND_MESSAGE_RESPONSE, result);
 			break;
 		}
 		default:
@@ -268,13 +214,13 @@ const T ChatServer::ReceiveProtoMessage(const TCPsocket socket) const
 template<class T>
 bool ChatServer::SendProtoMessage(const TCPsocket socket, message::type msgType, const T& message) const
 {
-	int protoSize = message.ByteSizeLong();	 //TO METO: This seems wrong as message might not have ByteSizeLong() method.
+	int protoSize = message.ByteSizeLong();
 	int msgSize = sizeof(Uint16) * 2 + protoSize;
 	char* buffer = new char[msgSize];
 
 	SDLNet_Write16((Uint16)msgType, buffer);
 	SDLNet_Write16(protoSize, buffer + sizeof(Uint16));
-	message.SerializeToArray(buffer + sizeof(Uint16) * 2, protoSize);  // METO: This seems wrong as message might not have ParseFromArray() method.
+	message.SerializeToArray(buffer + sizeof(Uint16) * 2, protoSize);
 
 	std::cout << "Sending " << msgSize << " bytes of data...\n";
 	size_t send = SDLNet_TCP_Send(socket, buffer, msgSize);
@@ -294,11 +240,23 @@ LoginResponse ChatServer::LoginClient(ClientData& client, const std::string& cre
 	{
 		client.credentials = credentials;
 		std::cout << "Log-in credentials: ACCEPPTED\n";
+		AddClientToConversation(0, client);
+
 		response.set_status(LoginResponse_Status_OK);
-		SDLNet_Write16(clientIdCounter, client.id);
-		std::cout << "ID assigned: " << clientIdCounter << "\n";
-		++clientIdCounter;
-		response.set_id(client.id, sizeof(Uint16));
+		//@METO: Optimization oportunity - keep a generated LoginResponse to avoid building the conversation list on every login. Should I?
+		for (auto cnv: targets) 
+		{
+			NewConversation& target = *response.add_conversations();
+			target.set_id(cnv.first);
+			target.set_name(cnv.second.name);
+		}
+		for (ClientData &otherClient : clientArr)
+		{
+			if(&otherClient != &client)
+			{
+				std::cout << "Sending conversation to " << otherClient.credentials << "\n"; //TODO: Extend
+			}
+		}
 	}
 	else
 	{
@@ -308,13 +266,21 @@ LoginResponse ChatServer::LoginClient(ClientData& client, const std::string& cre
 	return response;
 }
 
+Conversation& ChatServer::AddClientToConversation(const message::idType id, ClientData& client)
+{
+	Conversation& conversation = targets.try_emplace(id, Conversation{ "", {}, true }).first->second;
+	conversation.participants.emplace_back(&client);
+	client.conversations.emplace_back(id);
+	return conversation;
+}
+
 // This should be overriden to contain meaningful functionality. (For now it returns "true")
 bool ChatServer::CheckCredentials(const std::string& credentials)
 {
     return true;
 }
 
-SendMessageResponse ChatServer::ForwardMessage(const std::string& senderID, const std::string& targetID, const std::string& data) const
+SendMessageResponse ChatServer::ForwardMessage(const message::idType senderId, const std::string& targetID, const std::string& data) const
 {
 	TCPsocket target = FindClient(targetID);
 	SendMessageResponse response;
@@ -324,7 +290,7 @@ SendMessageResponse ChatServer::ForwardMessage(const std::string& senderID, cons
 		return response;
 	}
 	Message msg = Message();
-	msg.set_sender_id(senderID);
+	msg.set_sender_id(senderId);
 	msg.set_data(data);
 	if(SendProtoMessage(target, message::type::MESSAGE, msg))
 	{
@@ -354,9 +320,10 @@ void ChatServer::CheckForInactivity(ClientData& client)
 {
 	if (client.socket == nullptr)
 	{
+		clientArrDirty = true;
 		return;
 	}
-	if (SDL_GetTicks() > client.checkTime)
+	if (SDL_GetTicks() > client.lastMesageTime + INACTIVITY_TIME)
 	{
 		if (client.onNotice)
 		{
@@ -372,15 +339,15 @@ void ChatServer::CheckForInactivity(ClientData& client)
 				DisconnectClient(client);
 				return;
 			}
+			/*
 			else
 			{
 				std::cout << "  Client_" << client.id <<" < Ping\n";
 				client.onNotice = true;
-				client.checkTime = SDL_GetTicks() + NOTICE_TIME;
 			}
+			*/
 		}
 	}
-	nextActivityCheckSceduleTime = (nextActivityCheckSceduleTime > client.checkTime) ? client.checkTime : nextActivityCheckSceduleTime;
 }
 
 ClientData* ChatServer::AcceptConnection()
@@ -402,8 +369,7 @@ ClientData* ChatServer::AcceptConnection()
 
 	ClientData& client = clientArr.emplace_back(ClientData());
 	client.socket = clientSocket;
-	client.checkTime = SDL_GetTicks() + INACTIVITY_TIME - NOTICE_TIME;
-	nextActivityCheckSceduleTime = (nextActivityCheckSceduleTime > client.checkTime) ? client.checkTime : nextActivityCheckSceduleTime;
+	client.lastMesageTime = SDL_GetTicks();
 	return &client;
 }
 

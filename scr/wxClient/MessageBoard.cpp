@@ -1,5 +1,6 @@
 #include <wx/button.h>
 #include <wx/wupdlock.h>
+#include <wx/msgdlg.h> //TODO: Remove after testing
 #include "MessageBoard.h"
 
 #include <wx/stattext.h>
@@ -14,9 +15,24 @@ MessageBoard::MessageBoard::MessageBoard(wxWindow* parent, wxWindowID winid, con
 	SetScrollRate(-1, VERT_SCROLL_SPEED);
 }
 
+bool TextMessage::Create(wxWindow* parent, wxWindowID winid, const wxString& senderName, const wxString& content)
+{
+	if (!wxPanel::Create(parent, winid, wxDefaultPosition, wxDefaultSize))
+	{
+		return false;
+	}
+	wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(new wxButton(this, wxID_ANY, senderName), wxSizerFlags(0).Top());
+	wxStaticText* textField = new wxStaticText(this, wxID_ANY, content);
+	sizer->Add(textField, wxSizerFlags(1).Expand().Border(wxLEFT));
+	SetSizerAndFit(sizer);
+	return true;
+}
+
+//TODO: Remove when the events start working
 void MessageBoard::AddMessage(const wxString& messageContent, const wxString& senderName)
 {
-	//int scrollFromBottom = GetScrollRange(wxVERTICAL) - GetClientSize().GetY()/VERT_SCROLL_SPEED - GetScrollPos(wxVERTICAL); - Not working
+	//int scrollFromBottom = GetScrollRange(wxVERTICAL) - GetClientSize().GetY()/VERT_SCROLL_SPEED - GetScrollPos(wxVERTICAL); //@METO: Not working
 	TextMessage* message = new TextMessage();
 	message->Hide();
 	message->Create(this, wxID_ANY, senderName, messageContent);
@@ -26,20 +42,16 @@ void MessageBoard::AddMessage(const wxString& messageContent, const wxString& se
 	message->Show();
 }
 
-bool TextMessage::Create(wxWindow* parent, wxWindowID winid, const wxString& senderName, const wxString& content)
+void MessageBoard::OnMessage(wxCommandEvent& event)
 {
-	if (wxPanel::Create(parent, winid, wxDefaultPosition, wxDefaultSize))
+	event.Skip();
+	if (event.GetId() == 1)
 	{
-		wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-		//sizer->InformFirstDirection(wxHORIZONTAL,parent->GetSizer()->GetSize().GetWidth(),-1);
-		sizer->Add(new wxButton(this, wxID_ANY, senderName), wxSizerFlags(0).Top());
-		wxStaticText* textField = new wxStaticText(this, wxID_ANY, content);
-		sizer->Add(textField, wxSizerFlags(1).Expand().Border(wxLEFT));
-		SetSizerAndFit(sizer);
-		return true;
+		wxMessageBox("OnMessage() - Send", "MessageBoard");
 	}
-	else
+	if (event.GetId() == 2)
 	{
-		return false;
+		wxMessageBox("OnMessage() - Recieve", "MessageBoard");
 	}
+
 }
