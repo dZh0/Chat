@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <wx/listbox.h>
 
 class ConversationList: public wxListBox
@@ -14,6 +15,5 @@ public:
 		const wxValidator& validator = wxDefaultValidator,
 		const wxString& name = wxASCII_STR(wxListBoxNameStr)
 	);
-	void OnNewConversation(const wxCommandEvent& event);
 	void OnMessage(wxCommandEvent& event);
 };

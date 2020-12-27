@@ -13,10 +13,14 @@ public:
 	virtual bool OnInit() override;
 	virtual int OnExit() override;
 	// from ChatClient:
-	virtual void OnError(const std::string& errorMsg) override;
+	virtual void OnError(const std::string &errorMsg) override;
+	virtual void OnPing() override;
+	virtual void OnLoginSuccessful(const std::vector<std::pair<const msg::targetId, std::string>>& conversationList) override;
+	virtual void OnLoginFailed() override;
+	virtual void OnNewConversation(const msg::targetId id, const std::string& name);
+	virtual void OnMessageReceived(const msg::targetId senderId, const std::string& message) override;
 	virtual void OnDisconnect() override;
-	virtual void OnPingMessageRecieved() override;
-	virtual void OnLoginSuccessful(const std::vector<std::pair<const uint32_t, std::string>>& conversationList) override;
+
 	// handle events
 	void HandleErrorEvent(wxThreadEvent& event);
 	void OnSendMessage(const wxCommandEvent& event);
@@ -26,11 +30,6 @@ public:
 	void Connect();
 	void Update();
 
-	/*
-	void OnMessageRecieved(wxThreadEvent& event);
-	void OnNewConversation(wxThreadEvent& event);
-	*/
-
 	//TODO: These should be at some point saved and loaded
 	wxString serverIP = "localhost";
 	wxString serverPort = "1234";
@@ -38,6 +37,8 @@ public:
 protected:
 	std::thread* updateThread = nullptr;
 	ChatWindow* mainWindow = nullptr;
+private:
+	std::vector<msg::targetId> targets;
 };
 wxDECLARE_APP(ChatApp);
 

@@ -6,12 +6,6 @@ ConversationList::ConversationList(wxWindow* parent, wxWindowID id, const wxPoin
 {
 }
 
-void ConversationList::OnNewConversation(const wxCommandEvent &event)
-{
-	wxMessageBox("OnNewConversation()", "ConversationList");
-	Append(event.GetString());
-};
-
 void ConversationList::OnMessage(wxCommandEvent& event)
 {
 	event.Skip();

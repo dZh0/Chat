@@ -17,21 +17,20 @@ public:
 		long style = wxDEFAULT_FRAME_STYLE,
 		const wxString& name = wxFrameNameStr
 	);
-	//void OnMessageRecieved(wxThreadEvent& event);
+	void OnNewConversation(const wxThreadEvent& event);
+	MessageBoard* CreateConversation(const wxWindowID id, const wxString& name);
 	void OnNetworkEvent(wxThreadEvent& event);
-	ConversationList* convList = nullptr;
+
 private:
 	void OnConnect(wxCommandEvent&);
 	void OnClose(wxCommandEvent&);
 	void OnAbout(wxCommandEvent&);
 	void OnSendMessage(wxCommandEvent& event);
-
-
 	void OnSelectMessageBoard(const wxCommandEvent& event);
-	
 
-	//std::map<uint32_t ,MessageBoard*> conversations;
+	std::vector<MessageBoard*> conversations;
 	wxPanel* messagePannel = nullptr;
+	ConversationList* convList = nullptr;
 
 	MessageBoard* activeMessageBoard = nullptr;
 

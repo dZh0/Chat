@@ -1,4 +1,5 @@
 #include <wx/splitter.h>
+#include <assert.h>
 #include "ChatApp.h"
 #include "ChatWindow.h"
 
@@ -31,21 +32,21 @@ ChatWindow::ChatWindow(wxWindow* parent, wxWindowID id, const wxString& title, c
 	wxSplitterWindow* splitter = new  wxSplitterWindow(this);
 	splitter->SetMinimumPaneSize(21);
 	convList = new ConversationList(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_SINGLE);
-	Bind(EVT_CONVERSATION, &ConversationList::OnNewConversation, convList);
 	Bind(EVT_MESSAGE, &ConversationList::OnMessage, convList, ID_RECEIVE);
 	
 	messagePannel = new wxPanel(splitter, wxID_ANY);
-	messageBoard = new MessageBoard(messagePannel, wxID_ANY);
+	//HACK - Fuggure out a way to remove emptyMessageBoard
+	MessageBoard* emptyMessageBoard = new MessageBoard(messagePannel, wxID_ANY);
+	activeMessageBoard = emptyMessageBoard;
 	convList->Bind(wxEVT_LISTBOX, &ChatWindow::OnSelectMessageBoard, this);
 	Bind(EVT_MESSAGE, &MessageBoard::OnMessage, messageBoard);
 
 	inputField = new wxTextCtrl(messagePannel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-	inputField->SetHint(wxT("Enter message"));
 	inputField->Bind(wxEVT_TEXT_ENTER, &ChatWindow::OnSendMessage, this);
-	inputField->Bind(wxEVT_TEXT_ENTER, &MessageBoard::OnMessage, messageBoard);
+	inputField->Bind(wxEVT_TEXT_ENTER, &MessageBoard::OnMessage, emptyMessageBoard);
 
 	wxBoxSizer* chatBox = new wxBoxSizer(wxVERTICAL);
-	chatBox->Add(messageBoard, wxSizerFlags(1).Expand());
+	chatBox->Add(emptyMessageBoard, wxSizerFlags(1).Expand());
 	chatBox->Add(inputField, wxSizerFlags(0).Expand());
 	messagePannel->SetSizer(chatBox);
 
@@ -55,6 +56,23 @@ ChatWindow::ChatWindow(wxWindow* parent, wxWindowID id, const wxString& title, c
 	// Status bar
 	CreateStatusBar();
 	SetStatusText("Welcome to Chat!");
+}
+
+void ChatWindow::OnNewConversation(const wxThreadEvent& event)
+{
+	CreateConversation(event.GetInt(), event.GetString());
+}
+
+MessageBoard* ChatWindow::CreateConversation(const wxWindowID id, const wxString& name)
+{
+	MessageBoard* newCnv = new MessageBoard(messagePannel, id, wxDefaultPosition, wxDefaultSize, wxScrolledWindowStyle, name);
+	// TODO: Remove after debug
+	newCnv->AddMessage(wxString::Format("Now talking to %s.", name), wxString::Format("%i", id));
+
+	newCnv->Hide();
+	conversations.push_back(newCnv);
+	convList->Append(name, newCnv);
+	return newCnv;
 }
 
 
@@ -77,7 +95,7 @@ void ChatWindow::OnAbout(wxCommandEvent& event)
 
 void ChatWindow::OnNetworkEvent(wxThreadEvent& event)
 {
-	wxMessageBox(wxString::Format(wxT("NetworkWvent(%i): %s"), event.GetId(), event.GetString()), "ChatWindow", wxOK | wxICON_INFORMATION);
+	wxMessageBox(wxString::Format("OnNetworkEvent(%i): %s", event.GetId(), event.GetString()), "ChatWindow", wxOK | wxICON_INFORMATION);
 }
 
 void ChatWindow::OnSendMessage(wxCommandEvent& event)
@@ -94,15 +112,13 @@ void ChatWindow::OnSendMessage(wxCommandEvent& event)
 
 void ChatWindow::OnSelectMessageBoard(const wxCommandEvent &event)
 {
-	wxMessageBox("OnSelectMessageBoard()", "ChatWindow");
-	if (activeMessageBoard != nullptr)
-	{
-		activeMessageBoard->Hide();
-	}
-	//activeMessageBoard = conversations[event.GetId()];
-	if (activeMessageBoard == nullptr)
-	{
-		//activeMessageBoard = new MessageBoard(panel, wxID_ANY);  //TODO: Create new message panel on select
-	}
+	wxSizer* chatBox = messagePannel->GetSizer();
+	MessageBoard* newMsgBoard = static_cast<MessageBoard*>(event.GetClientData());
+	assert(newMsgBoard != nullptr); //Should never recive a wxEVT_LISTBOX event without ClientData*. Check if ChatWindow::CreateConversation() has properly created a MessageBoard.
+	chatBox->Replace(activeMessageBoard, newMsgBoard);
+	activeMessageBoard->Hide();
+	activeMessageBoard = newMsgBoard;
 	activeMessageBoard->Show();
+	messagePannel->Layout();
+	inputField->SetHint(wxString::Format("Write to %s . . .", activeMessageBoard->GetName()));
 }

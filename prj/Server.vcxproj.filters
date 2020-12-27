@@ -14,9 +14,6 @@
     <ClInclude Include="..\scr\server\Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\scr\ProtoBuffer\Message.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\scr\server\main_Server.cpp">

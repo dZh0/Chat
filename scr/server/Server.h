@@ -2,8 +2,7 @@
 
 #include <vector>
 #include <string>
-#include "SDL_net.h"
-#include "../ProtoBuffer/Message.h"
+#include "Message.h"
 
 // SERVER SETTINGS
 constexpr Uint32 ACTIVITY_CHECK_TIMEOUT = 1000;	// How long the server will wait for activity (in [ms]);
@@ -12,18 +11,19 @@ constexpr Uint32 INACTIVITY_TIME = 10000;		// How long a client must be inactive
 
 struct ClientData
 {
-	std::string credentials;
 	TCPsocket socket = nullptr;
+	std::string credentials;
+	std::string name;
 	Uint32 lastMesageTime = 0;
 	bool onNotice = false;
-	std::vector<message::idType> conversations = {};
+	std::vector<msg::targetId> conversations = {};
 };
 
-// The idea behind "conversations" is to facilitate messaging offline clients by targeting their conversations. (that will not be removed)
+// The idea behind "conversations" is to facilitate messaging offline clients by targeting their conversations. (that will not be removed when the client disconnects)
 struct Conversation
 {
 	std::string name = "Global";
-	std::vector<ClientData*> participants;
+	std::vector<ClientData*> observers;
 	bool isPrivate = false;
 };
 
@@ -38,36 +38,28 @@ public:
 	virtual void Disconnect();
 
 	bool ReceiveMessage(ClientData& client);
-	int ReceiveSint16(const TCPsocket socket) const;
-	template<class T>
-	const T ReceiveProtoMessage(const TCPsocket socket) const;
 
 	LoginResponse LoginClient(ClientData& client, const std::string& credentials);
-	Conversation& AddClientToConversation(const message::idType id, ClientData& client);
-	virtual bool CheckCredentials(const std::string& credentials);
-	SendMessageResponse ForwardMessage(const message::idType senderId, const std::string& targetID, const std::string& data) const;
+	Conversation& AddClientToConversation(const msg::targetId id, ClientData& client);
+	SendMessageResponse ForwardMessage(const msg::targetId senderId, const std::string& targetID, const std::string& data) const;
 	const TCPsocket FindClient(const std::string& id) const;
 	
 	void CheckForInactivity(ClientData& client);
 	ClientData* AcceptConnection();
 	void DisconnectClient(ClientData& client);
 	void DeleteDisconnectdClients();
-
-	template<class T>
-	bool SendProtoMessage(const TCPsocket socket, message::type msgType, const T& message) const;
-	bool Ping(ClientData& client) const;
 	
+
+	virtual void OnPing(const ClientData& client);
+	virtual void OnLoginRequest(const ClientData& client);
+
 protected:
-	message::idType clientIdCounter = 1;
+	msg::targetId clientIdCounter = 1;
 	TCPsocket listeningSocket = nullptr;
 	SDLNet_SocketSet socketSet = nullptr;
 	std::vector<ClientData> clientArr;
 	bool clientArrDirty = false;
 	Uint32 nextActivityCheckSceduleTime = 0xFFFFFFFF;
 	unsigned maxConnections = 1;
-
-	//conversations
-	std::map<const message::idType, Conversation> targets = { {0, {"Global",{},false}} };
-	const Conversation& globalConversation = targets[0];
-
+	std::map<const msg::targetId, Conversation> targets = { {0, {"Global",{},false}} };
 };

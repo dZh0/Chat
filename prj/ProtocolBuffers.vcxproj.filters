@@ -21,6 +21,9 @@
     <ClCompile Include="..\scr\ProtoBuffer\Message.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\scr\ProtoBuffer\Message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\scr\ProtoBuffer\Login.pb.h">

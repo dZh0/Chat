@@ -14,7 +14,7 @@ public:
 		long style = wxScrolledWindowStyle,
 		const wxString& name = wxASCII_STR(wxPanelNameStr)
 	);
-	virtual void AddMessage(const wxString& messageContent, const wxString& senderName = ""); //TODO: Remove
+	virtual void AddMessage(const wxString& messageContent, const wxString& senderName); //TODO: Remove
 	void OnMessage(wxCommandEvent &event);
 };
 

@@ -32,7 +32,7 @@ bool TextMessage::Create(wxWindow* parent, wxWindowID winid, const wxString& sen
 //TODO: Remove when the events start working
 void MessageBoard::AddMessage(const wxString& messageContent, const wxString& senderName)
 {
-	//int scrollFromBottom = GetScrollRange(wxVERTICAL) - GetClientSize().GetY()/VERT_SCROLL_SPEED - GetScrollPos(wxVERTICAL); //@METO: Not working
+	//int scrollFromBottom = GetScrollRange(wxVERTICAL) - GetClientSize().GetY()/VERT_SCROLL_SPEED - GetScrollPos(wxVERTICAL); //@ METO: Not working
 	TextMessage* message = new TextMessage();
 	message->Hide();
 	message->Create(this, wxID_ANY, senderName, messageContent);
