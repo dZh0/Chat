@@ -13,7 +13,8 @@ message LoginResponse
 	  FAIL = -1;
 	}
 	Status status = 1;
-	repeated NewConversation conversations = 2;
+	fixed32 id = 2;
+	repeated NewConversation conversations = 3;
 }
 
 message NewConversation

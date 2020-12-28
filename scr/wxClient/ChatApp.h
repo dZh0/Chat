@@ -14,11 +14,10 @@ public:
 	virtual int OnExit() override;
 	// from ChatClient:
 	virtual void OnError(const std::string &errorMsg) override;
-	virtual void OnPing() override;
 	virtual void OnLoginSuccessful(const std::vector<std::pair<const msg::targetId, std::string>>& conversationList) override;
 	virtual void OnLoginFailed() override;
 	virtual void OnNewConversation(const msg::targetId id, const std::string& name);
-	virtual void OnMessageReceived(const msg::targetId senderId, const std::string& message) override;
+	virtual void OnMessageReceived(const msg::targetId target, const msg::targetId sender, const std::string& message) override;
 	virtual void OnDisconnect() override;
 
 	// handle events
@@ -37,10 +36,9 @@ public:
 protected:
 	std::thread* updateThread = nullptr;
 	ChatWindow* mainWindow = nullptr;
-private:
-	std::vector<msg::targetId> targets;
 };
 wxDECLARE_APP(ChatApp);
 
-wxDECLARE_EVENT(EVT_NETWORK, wxThreadEvent);
+wxDECLARE_EVENT(EVT_CONVERSATION, wxThreadEvent);
+wxDECLARE_EVENT(EVT_MESSAGE, wxThreadEvent);
 wxDECLARE_EVENT(EVT_ERROR, wxThreadEvent); // OnError() can potentially be called from within a thread so it needs to be wxThreadEvent.

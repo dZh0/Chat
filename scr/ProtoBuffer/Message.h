@@ -17,16 +17,18 @@ namespace msg
 	};
 
 	// Message id type - numeric value of msg::type enum class for internal serilization
+	// Note that this type must be convertable to <int>
 	typedef Uint16 id;
 	void WriteType(void* buffer, msg::type type);
 	const msg::type ReadType(void* buffer);
 
-	// Message size type for seriliation
+	// Message size type for serilization
 	typedef Uint16 size;
 	void WriteSize(void* buffer, msg::size size);
 	const msg::size ReadSize(void* buffer);
 
 	// Target id type sent in proto message as sender or reciever id and mapped in client and server
+	// Note that this type must be convertable to <int>
 	typedef uint32_t targetId;
 
 	// Sending messages

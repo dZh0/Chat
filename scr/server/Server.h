@@ -11,6 +11,7 @@ constexpr Uint32 INACTIVITY_TIME = 10000;		// How long a client must be inactive
 
 struct ClientData
 {
+	msg::targetId id = 0;
 	TCPsocket socket = nullptr;
 	std::string credentials;
 	std::string name;
@@ -41,7 +42,7 @@ public:
 
 	LoginResponse LoginClient(ClientData& client, const std::string& credentials);
 	Conversation& AddClientToConversation(const msg::targetId id, ClientData& client);
-	SendMessageResponse ForwardMessage(const msg::targetId senderId, const std::string& targetID, const std::string& data) const;
+	
 	const TCPsocket FindClient(const std::string& id) const;
 	
 	void CheckForInactivity(ClientData& client);
@@ -62,4 +63,6 @@ protected:
 	Uint32 nextActivityCheckSceduleTime = 0xFFFFFFFF;
 	unsigned maxConnections = 1;
 	std::map<const msg::targetId, Conversation> targets = { {0, {"Global",{},false}} };
+private:
+	SendMessageResponse ForwardMessage(const ClientData& client, const msg::targetId& id, const std::string& data) const;
 };

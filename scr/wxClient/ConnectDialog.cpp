@@ -16,7 +16,9 @@ ConnectDialog::ConnectDialog(wxWindow* parent, wxString& serverIp, wxString& ser
 	grid->AddGrowableCol(1, 1);
 
 	wxBoxSizer* controls = new wxBoxSizer(wxHORIZONTAL);
-	controls->Add(new wxButton(panel, wxID_OK, "Connect"), 0);
+	wxButton* okButton = new wxButton(panel, wxID_OK, "Connect");
+	okButton->SetDefault();
+	controls->Add(okButton, 0);
 	controls->Add(new wxButton(panel, wxID_CANCEL, "Cancel"), 0, wxLEFT, 5);
 
 	wxBoxSizer* contentBox = new wxBoxSizer(wxVERTICAL);

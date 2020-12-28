@@ -17,6 +17,11 @@ bool ChatClient::IsConnected() const
 	return isConnected;
 }
 
+bool ChatClient::IsMe(const msg::targetId id)
+{
+	return id == ChatClient::id;
+}
+
 bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, const std::string& credentials, int attemptCount, Uint32 timeout)
 {
 	bool isServerResolved = false;
@@ -56,24 +61,25 @@ bool ChatClient::ConnectToServer(const std::string& host, const Uint16 port, con
 	return isConnected;
 }
 
-bool ChatClient::SendTextMessage(const msg::targetId target, const std::string& message)
+bool ChatClient::SendTextMessage(const msg::targetId target, const std::string& message) const
 {
 	SendMessageRequest msg = SendMessageRequest();
 	msg.set_recipient_id(target);
 	msg.set_data(message);
-	if (!msg::Send(serverSocket, msg::type::SEND_MESSAGE_REQUEST, msg))
+	bool result;
 	{
-		return false;
+		std::lock_guard lock(mtx); // Locking acess to [serverSocket]
+		result = msg::Send(serverSocket, msg::type::SEND_MESSAGE_REQUEST, msg);
+		//@ METO:	Initially I had listening for SEND_MESSAGE_RESPONCE here but it would lock both the main and update threads until recived.
+		//			Currently SEND_MESSAGE_RESPONCE is ignored as no sutable application is foreseen.
 	}
-	//@ METO:	Initially I had listening for SEND_MESSAGE_RESPONCE here but it would lock the main thread and will fight the update thread.
-	//			Currently SEND_MESSAGE_RESPONCE is redundant.
-	return true;
+	return result;
 }
 
 bool ChatClient::ConnectTo(const std::string& host, const Uint16 port)
 {
-	Disconnect();
 	IPaddress hostIp;
+	std::lock_guard lock(mtx); // Locking acess to [serverSocket], [socketSet] and virtual OnError()
 	if (SDLNet_ResolveHost(&hostIp, host.c_str(), port) < 0)
 	{
 		OnError("SDLNet_ResolveHost: " + std::string(SDLNet_GetError()));
@@ -104,6 +110,7 @@ bool ChatClient::RequestLogIn(const std::string& credentials)
 {
 	LoginRequest LoginRequestMsg = LoginRequest();
 	LoginRequestMsg.set_credentials(credentials);
+	std::lock_guard lock(mtx); // Locking acess to [serverSocket]
 	return msg::Send(serverSocket, msg::type::LOGIN_REQUEST, LoginRequestMsg);
 }
 
@@ -111,18 +118,18 @@ bool ChatClient::ListenForMessage(const Uint32 timeout)
 {
 	int socketsToProcess = 0;
 	{
-		std::lock_guard lock(mtx);
+		std::lock_guard lock(mtx); // Locking acess to [socketSet]
 		socketsToProcess = SDLNet_CheckSockets(socketSet, timeout);
-	}
-	if (socketsToProcess < 0)
-	{
-		OnError("SDLNet_CheckSockets: " + std::string(SDLNet_GetError()));
+		if (socketsToProcess < 0)
+		{
+			OnError("SDLNet_CheckSockets: " + std::string(SDLNet_GetError()));
+		}
 	}
 	if (socketsToProcess <= 0)
 	{
 		return false;
 	}
-	std::lock_guard lock(mtx);
+	std::lock_guard lock(mtx); // Locking acess to [serverSocket] and all virtual function calls
 	if (!SDLNet_SocketReady(serverSocket))
 	{
 		return false;
@@ -147,6 +154,7 @@ bool ChatClient::ListenForMessage(const Uint32 timeout)
 					conversationList.push_back(std::make_pair(conv.id(), conv.name()));
 				}
 				isConnected = true;
+				id = static_cast<msg::targetId>(msg.id());
 				OnLoginSuccessful(conversationList);
 			}
 			else
@@ -178,7 +186,7 @@ bool ChatClient::ListenForMessage(const Uint32 timeout)
 		case msg::type::MESSAGE:
 		{
 			Message msg = msg::Receive<Message>(serverSocket);
-			OnMessageReceived(msg.sender_id(), msg.data());
+			OnMessageReceived(msg.recipient_id(), msg.sender_id(), msg.data());
 			break;
 		}
 		default:
@@ -195,8 +203,8 @@ bool ChatClient::ListenForMessage(const Uint32 timeout)
 void ChatClient::Disconnect()
 {
 	isConnected = false;
+	std::lock_guard lock(mtx); // Locking acess to [serverSocket], [socketSet] and virtual OnDisconnect()
 	OnDisconnect();
-	std::lock_guard lock(mtx);
 	if (serverSocket)
 	{
 		SDLNet_TCP_DelSocket(socketSet, serverSocket);

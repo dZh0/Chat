@@ -1,8 +1,14 @@
 #pragma once
 #include "ConversationList.h"
 #include "MessageBoard.h"
+#include <map>
 #include <wx/wx.h>
 
+//@METO:	Is it ok for these to be global? They are used by ChatApp class to identify events.
+//			Another brilliant solution from wxWidgets: Neither wxNewId() nor NewControlId allow for the IDs to be passed through the events.
+const wxWindowID ID_CONNECT = 1;
+const wxWindowID ID_DISCONNECT = 2;
+const wxWindowID ID_SEND_MESSAGE = 3;
 
 class ChatWindow : public wxFrame
 {
@@ -17,29 +23,24 @@ public:
 		long style = wxDEFAULT_FRAME_STYLE,
 		const wxString& name = wxFrameNameStr
 	);
-	void OnNewConversation(const wxThreadEvent& event);
+	void OnNewConversation(wxThreadEvent& event);
+	void OnMessageReceived(wxThreadEvent& event);
+
+	MessageBoard* GetConversation(const wxWindowID id) const;
 	MessageBoard* CreateConversation(const wxWindowID id, const wxString& name);
-	void OnNetworkEvent(wxThreadEvent& event);
+
 
 private:
 	void OnConnect(wxCommandEvent&);
 	void OnClose(wxCommandEvent&);
 	void OnAbout(wxCommandEvent&);
 	void OnSendMessage(wxCommandEvent& event);
-	void OnSelectMessageBoard(const wxCommandEvent& event);
+	void OnSelectMessageBoard(wxCommandEvent& event);
+	void ActivateMessageBoard(MessageBoard* msgBoard);
 
-	std::vector<MessageBoard*> conversations;
 	wxPanel* messagePannel = nullptr;
 	ConversationList* convList = nullptr;
-
+	std::map<const int, MessageBoard*> targets;
 	MessageBoard* activeMessageBoard = nullptr;
-
-	MessageBoard* messageBoard = nullptr;
 	wxTextCtrl* inputField = nullptr;
 };
-
-wxDECLARE_EVENT(EVT_CONVERSATION_NEW, wxCommandEvent);
-wxDECLARE_EVENT(EVT_MESSAGE, wxCommandEvent);
-enum { ID_SEND = 1, ID_RECEIVE = 2 };
-const wxWindowID ID_CONNECT = wxWindow::NewControlId();
-const wxWindowID ID_DISCONNECT = wxWindow::NewControlId();

@@ -5,7 +5,8 @@
 #include "ChatApp.h"
 
 wxIMPLEMENT_APP(ChatApp);
-wxDEFINE_EVENT(EVT_NETWORK, wxThreadEvent);
+wxDEFINE_EVENT(EVT_CONVERSATION, wxThreadEvent);
+wxDEFINE_EVENT(EVT_MESSAGE, wxThreadEvent);
 wxDEFINE_EVENT(EVT_ERROR, wxThreadEvent);
 
 bool ChatApp::OnInit()
@@ -18,9 +19,10 @@ bool ChatApp::OnInit()
 	}
 	mainWindow = new ChatWindow(nullptr, wxID_ANY, "Chat");
 	mainWindow->Show(true);
-	Bind(EVT_NETWORK, &ChatWindow::OnNetworkEvent, mainWindow);
+	
 	mainWindow->Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatApp::OnConnect, this, ID_CONNECT);
-	//mainWindow->Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatApp::OnDisconnect, this, ID_DISCONNECT);
+	//mainWindow->Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatApp::OnDisconnect, this, ID_DISCONNECT); //TODO: Add later
+	mainWindow->Bind(wxEVT_TEXT_ENTER, &ChatApp::OnSendMessage, this); //TODO: Maybe bind after a connection is established?
 	Connect();
 	return true;
 }
@@ -38,23 +40,15 @@ void ChatApp::OnError(const std::string& errorMsg)
 	QueueEvent(event.Clone());
 }
 
-void ChatApp::OnPing()
-{
-	wxThreadEvent networkEvent(EVT_NETWORK, static_cast<int>(msg::type::PING));
-	networkEvent.SetString("Test ping recieved; The next line of the message is made to test sizing and word warp (which currently does not work):\nLorem ipsum dolor sit amet, consectetur adipiscing elit.Quisque viverra nunc quis sodales fringilla.Aenean nibh velit, rutrum vel magna et, gravida rhoncus libero.Quisque eu gravida libero.Interdum et malesuada fames ac ante ipsum primis in faucibus.Aliquam ante nulla, vehicula finibus magna eu, egestas maximus odio.Morbi malesuada risus eget metus porttitor dapibus et ut magna.In scelerisque a mi eu commodo.Nullam dictum molestie nisi, tincidunt cursus ligula facilisis at.Cras quis leo at felis semper porta id a enim.Morbi ornare, felis in maximus lobortis, sem leo egestas enim, id varius sem ante gravida risus.Ut quis sem commodo, consectetur lacus quis, sagittis elit.Etiam molestie neque vitae risus blandit, et elementum felis volutpat.Etiam blandit est in porta convallis.Nulla facilisi.Proin posuere ut mi a porttitor.");
-	QueueEvent(networkEvent.Clone());
-}
-
 void ChatApp::OnLoginSuccessful(const std::vector<std::pair<const msg::targetId, std::string>>& conversationList)
 {
 	for (const auto &cnv: conversationList)
 	{
-		// @METO:	This only works because OnLoginSuccesfull() is called on the main thread.
-		//			Alternatavely I can queue a EVT_NETWORK for every conversation but it seems like an overkll.
+		// @METO:	This direct approach works because OnLoginSuccesfull() is only called on the main thread.
+		//			Alternatavely I can queue a EVT_CONVERSATION for every conversation but it seems like an overkll. Should I?
 		mainWindow->CreateConversation(static_cast<wxWindowID>(cnv.first), cnv.second);
 	}
-	//TODO:	Select the first conversation envoking wxEVT_LISTBOX event.
-	//		Calling mainWindow->convList->Select(0) does not fire the event;
+	mainWindow->SetStatusText("Welcome to Chat!");
 }
 
 void ChatApp::OnLoginFailed()
@@ -64,23 +58,31 @@ void ChatApp::OnLoginFailed()
 
 void ChatApp::OnNewConversation(const msg::targetId id, const std::string& name)
 {
-	wxThreadEvent networkEvent(EVT_NETWORK);
-	networkEvent.SetId(static_cast<int>(msg::type::NEW_CONVERSATION));
-	networkEvent.SetInt(id);
+	wxThreadEvent networkEvent(EVT_CONVERSATION);
+	networkEvent.SetId(static_cast<int>(id));
 	networkEvent.SetString(name);
 	QueueEvent(networkEvent.Clone());
 }
 
-void ChatApp::OnMessageReceived(const msg::targetId senderId, const std::string& message)
+void ChatApp::OnMessageReceived(const msg::targetId target, const msg::targetId sender, const std::string& message)
 {
+	wxThreadEvent networkEvent(EVT_MESSAGE);
+	if (IsMe(target))
+	{
+		networkEvent.SetId(static_cast<int>(sender));
+	}
+	else
+	{
+		networkEvent.SetId(static_cast<int>(target));
+	}
+	networkEvent.SetInt(static_cast<int>(sender));
+	networkEvent.SetString(message);
+	QueueEvent(networkEvent.Clone());
 }
 
 void ChatApp::OnDisconnect()
 {
-	if (!mainWindow->IsBeingDeleted())
-	{
-		//mainWindow->convList->Clear();
-	}
+	//TODO: Maybe clear main window contact list
 	if (updateThread)
 	{
 		updateThread->join();
@@ -100,8 +102,8 @@ void ChatApp::Connect()
 		wxBusyInfo busyWindow("Connecting...", GetTopWindow());
 		if (ConnectToServer(std::string(serverIP), wxAtoi(serverPort), std::string(userName), 2, 1000))
 		{
-			Bind(EVT_NETWORK, &ChatWindow::OnNewConversation, mainWindow, static_cast<int>(msg::type::NEW_CONVERSATION));
-			mainWindow->Bind(EVT_MESSAGE, &ChatApp::OnSendMessage, this, ID_SEND);
+			Bind(EVT_CONVERSATION, &ChatWindow::OnNewConversation, mainWindow);
+			Bind(EVT_MESSAGE, &ChatWindow::OnMessageReceived, mainWindow);
 			updateThread = new std::thread(&ChatApp::Update, this);
 		}
 	}
@@ -124,18 +126,23 @@ void ChatApp::HandleErrorEvent(wxThreadEvent& event)
 
 void ChatApp::OnSendMessage(const wxCommandEvent& event)
 {
-	wxMessageBox("OnSendMessage()", "ChatApp");
-	SendTextMessage(event.GetInt(), event.GetString().ToStdString());
+	//@ METO: _ASSERTE(__acrt_first_block == header) fails when exiting function scope!!! No fix for that bugger.
+	const std::string message = event.GetString().ToStdString();
+	SendTextMessage(event.GetInt(), message);
 }
 
 void ChatApp::OnConnect(const wxCommandEvent& event)
 {
-	wxMessageBox("OnConnect()", "ChatApp");
 	Connect();
 }
 
 void ChatApp::OnDisonnect(const wxCommandEvent& event)
 {
-	wxMessageBox("OnDisconnect()", "ChatApp");
+	wxMessageBox(wxString::Format("TODO: OnDisonnect()\nevent.GetId() %i\nevent.GetInt() %i\nevent.GetString() %s\n\nID_DISCONNECT: %i",
+		event.GetId(),
+		event.GetInt(),
+		event.GetString(),
+		ID_DISCONNECT
+	), "ChatApp");
 	ChatClient::Disconnect();
 }

@@ -163,8 +163,8 @@ bool ChatServer::ReceiveMessage(ClientData& client)
 		{
 			client.lastMesageTime = SDL_GetTicks();
 			SendMessageRequest msg = msg::Receive<SendMessageRequest>(client.socket);
-			std::cout << "Transfering message from " << client.credentials << " to " << msg.recipient_id() << " . . .\n";
-			//SendMessageResponse result = ForwardMessage(client.id, msg.recipient_id(), msg.data());
+			std::cout << "Transfering message from " << client.name << " to " << msg.recipient_id() << " . . .\n";
+			SendMessageResponse result = ForwardMessage(client, msg.recipient_id(), msg.data());
 			std::cout << "Send message response to \"" << client.credentials << "\". . .\n";
 			//SendProtoMessage(client.socket, message::type::SEND_MESSAGE_RESPONSE, result);
 			break;
@@ -178,8 +178,6 @@ bool ChatServer::ReceiveMessage(ClientData& client)
 	}
 	return true;
 }
-
-
 
 LoginResponse ChatServer::LoginClient(ClientData& client, const std::string& credentials)
 {
@@ -200,6 +198,8 @@ LoginResponse ChatServer::LoginClient(ClientData& client, const std::string& cre
 		}
 		//Create Personal conversation;
 		msg::targetId personalId = clientIdCounter++;
+		client.id = personalId;
+		response.set_id(personalId);
 		Conversation& persoanlCnv = AddClientToConversation(personalId, client);
 		for (ClientData &otherClient : clientArr)
 		{
@@ -230,26 +230,29 @@ Conversation& ChatServer::AddClientToConversation(const msg::targetId id, Client
 	return conversation;
 }
 
-SendMessageResponse ChatServer::ForwardMessage(const msg::targetId senderId, const std::string& targetID, const std::string& data) const
+SendMessageResponse ChatServer::ForwardMessage(const ClientData& client, const msg::targetId& id, const std::string& data) const
 {
-	TCPsocket target = FindClient(targetID);
 	SendMessageResponse response;
-	if (target == nullptr)
+	auto found = targets.find(id);
+	if (found == targets.end())
 	{
 		response.set_status(SendMessageResponse_Status_FAIL);
 		return response;
 	}
 	Message msg = Message();
-	msg.set_sender_id(senderId);
+	msg.set_sender_id(client.id);
+	msg.set_recipient_id(id);
 	msg.set_data(data);
-	if(msg::Send(target, msg::type::MESSAGE, msg))
+	const Conversation& conv = found->second;
+	for (ClientData* observer : conv.observers)
 	{
-		response.set_status(SendMessageResponse_Status_OK);
+		if (&client != observer)
+		{
+			std::cout << "   " << client.name << " -> " << observer->name << "\n";
+			msg::Send(observer->socket, msg::type::MESSAGE, msg);
+		}
 	}
-	else
-	{
-		response.set_status(SendMessageResponse_Status_FAIL);
-	}
+	response.set_status(SendMessageResponse_Status_OK);
 	return response;
 }
 

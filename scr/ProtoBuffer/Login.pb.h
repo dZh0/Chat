@@ -384,10 +384,11 @@ class LoginResponse PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kConversationsFieldNumber = 2,
+    kConversationsFieldNumber = 3,
     kStatusFieldNumber = 1,
+    kIdFieldNumber = 2,
   };
-  // repeated .NewConversation conversations = 2;
+  // repeated .NewConversation conversations = 3;
   int conversations_size() const;
   private:
   int _internal_conversations_size() const;
@@ -414,6 +415,15 @@ class LoginResponse PROTOBUF_FINAL :
   void _internal_set_status(::LoginResponse_Status value);
   public:
 
+  // fixed32 id = 2;
+  void clear_id();
+  ::PROTOBUF_NAMESPACE_ID::uint32 id() const;
+  void set_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_id() const;
+  void _internal_set_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
   // @@protoc_insertion_point(class_scope:LoginResponse)
  private:
   class _Internal;
@@ -423,6 +433,7 @@ class LoginResponse PROTOBUF_FINAL :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::NewConversation > conversations_;
   int status_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Login_2eproto;
 };
@@ -678,7 +689,27 @@ inline void LoginResponse::set_status(::LoginResponse_Status value) {
   // @@protoc_insertion_point(field_set:LoginResponse.status)
 }
 
-// repeated .NewConversation conversations = 2;
+// fixed32 id = 2;
+inline void LoginResponse::clear_id() {
+  id_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginResponse::_internal_id() const {
+  return id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginResponse::id() const {
+  // @@protoc_insertion_point(field_get:LoginResponse.id)
+  return _internal_id();
+}
+inline void LoginResponse::_internal_set_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  id_ = value;
+}
+inline void LoginResponse::set_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:LoginResponse.id)
+}
+
+// repeated .NewConversation conversations = 3;
 inline int LoginResponse::_internal_conversations_size() const {
   return conversations_.size();
 }

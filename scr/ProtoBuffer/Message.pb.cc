@@ -92,6 +92,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Message_2eproto::offsets[] PRO
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::Message, sender_id_),
+  PROTOBUF_FIELD_OFFSET(::Message, recipient_id_),
   PROTOBUF_FIELD_OFFSET(::Message, data_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -111,8 +112,9 @@ const char descriptor_table_protodef_Message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\014recipient_id\030\001 \001(\007\022\014\n\004data\030\002 \001(\014\"g\n\023Sen"
   "dMessageResponse\022+\n\006status\030\001 \001(\0162\033.SendM"
   "essageResponse.Status\"#\n\006Status\022\006\n\002OK\020\000\022"
-  "\021\n\004FAIL\020\377\377\377\377\377\377\377\377\377\001\"*\n\007Message\022\021\n\tsender_"
-  "id\030\001 \001(\007\022\014\n\004data\030\002 \001(\014b\006proto3"
+  "\021\n\004FAIL\020\377\377\377\377\377\377\377\377\377\001\"@\n\007Message\022\021\n\tsender_"
+  "id\030\001 \001(\007\022\024\n\014recipient_id\030\002 \001(\007\022\014\n\004data\030\003"
+  " \001(\014b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Message_2eproto_deps[1] = {
 };
@@ -123,7 +125,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Mes
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Message_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Message_2eproto = {
-  false, false, descriptor_table_protodef_Message_2eproto, "Message.proto", 230,
+  false, false, descriptor_table_protodef_Message_2eproto, "Message.proto", 252,
   &descriptor_table_Message_2eproto_once, descriptor_table_Message_2eproto_sccs, descriptor_table_Message_2eproto_deps, 3, 0,
   schemas, file_default_instances, TableStruct_Message_2eproto::offsets,
   file_level_metadata_Message_2eproto, 3, file_level_enum_descriptors_Message_2eproto, file_level_service_descriptors_Message_2eproto,
@@ -602,14 +604,18 @@ Message::Message(const Message& from)
     data_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from._internal_data(),
       GetArena());
   }
-  sender_id_ = from.sender_id_;
+  ::memcpy(&sender_id_, &from.sender_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&recipient_id_) -
+    reinterpret_cast<char*>(&sender_id_)) + sizeof(recipient_id_));
   // @@protoc_insertion_point(copy_constructor:Message)
 }
 
 void Message::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Message_Message_2eproto.base);
   data_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  sender_id_ = 0u;
+  ::memset(&sender_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&recipient_id_) -
+      reinterpret_cast<char*>(&sender_id_)) + sizeof(recipient_id_));
 }
 
 Message::~Message() {
@@ -645,7 +651,9 @@ void Message::Clear() {
   (void) cached_has_bits;
 
   data_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  sender_id_ = 0u;
+  ::memset(&sender_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&recipient_id_) -
+      reinterpret_cast<char*>(&sender_id_)) + sizeof(recipient_id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -664,9 +672,16 @@ const char* Message::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::in
           ptr += sizeof(::PROTOBUF_NAMESPACE_ID::uint32);
         } else goto handle_unusual;
         continue;
-      // bytes data = 2;
+      // fixed32 recipient_id = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 21)) {
+          recipient_id_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint32>(ptr);
+          ptr += sizeof(::PROTOBUF_NAMESPACE_ID::uint32);
+        } else goto handle_unusual;
+        continue;
+      // bytes data = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           auto str = _internal_mutable_data();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -706,10 +721,16 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFixed32ToArray(1, this->_internal_sender_id(), target);
   }
 
-  // bytes data = 2;
+  // fixed32 recipient_id = 2;
+  if (this->recipient_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFixed32ToArray(2, this->_internal_recipient_id(), target);
+  }
+
+  // bytes data = 3;
   if (this->data().size() > 0) {
     target = stream->WriteBytesMaybeAliased(
-        2, this->_internal_data(), target);
+        3, this->_internal_data(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -728,7 +749,7 @@ size_t Message::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // bytes data = 2;
+  // bytes data = 3;
   if (this->data().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
@@ -737,6 +758,11 @@ size_t Message::ByteSizeLong() const {
 
   // fixed32 sender_id = 1;
   if (this->sender_id() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // fixed32 recipient_id = 2;
+  if (this->recipient_id() != 0) {
     total_size += 1 + 4;
   }
 
@@ -777,6 +803,9 @@ void Message::MergeFrom(const Message& from) {
   if (from.sender_id() != 0) {
     _internal_set_sender_id(from._internal_sender_id());
   }
+  if (from.recipient_id() != 0) {
+    _internal_set_recipient_id(from._internal_recipient_id());
+  }
 }
 
 void Message::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
@@ -801,7 +830,12 @@ void Message::InternalSwap(Message* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   data_.Swap(&other->data_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  swap(sender_id_, other->sender_id_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Message, recipient_id_)
+      + sizeof(Message::recipient_id_)
+      - PROTOBUF_FIELD_OFFSET(Message, sender_id_)>(
+          reinterpret_cast<char*>(&sender_id_),
+          reinterpret_cast<char*>(&other->sender_id_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Message::GetMetadata() const {

@@ -532,10 +532,11 @@ class Message PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kDataFieldNumber = 2,
+    kDataFieldNumber = 3,
     kSenderIdFieldNumber = 1,
+    kRecipientIdFieldNumber = 2,
   };
-  // bytes data = 2;
+  // bytes data = 3;
   void clear_data();
   const std::string& data() const;
   void set_data(const std::string& value);
@@ -560,6 +561,15 @@ class Message PROTOBUF_FINAL :
   void _internal_set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
   public:
 
+  // fixed32 recipient_id = 2;
+  void clear_recipient_id();
+  ::PROTOBUF_NAMESPACE_ID::uint32 recipient_id() const;
+  void set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_recipient_id() const;
+  void _internal_set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Message)
  private:
   class _Internal;
@@ -569,6 +579,7 @@ class Message PROTOBUF_FINAL :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
   ::PROTOBUF_NAMESPACE_ID::uint32 sender_id_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 recipient_id_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Message_2eproto;
 };
@@ -713,7 +724,27 @@ inline void Message::set_sender_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   // @@protoc_insertion_point(field_set:Message.sender_id)
 }
 
-// bytes data = 2;
+// fixed32 recipient_id = 2;
+inline void Message::clear_recipient_id() {
+  recipient_id_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Message::_internal_recipient_id() const {
+  return recipient_id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Message::recipient_id() const {
+  // @@protoc_insertion_point(field_get:Message.recipient_id)
+  return _internal_recipient_id();
+}
+inline void Message::_internal_set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  recipient_id_ = value;
+}
+inline void Message::set_recipient_id(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_recipient_id(value);
+  // @@protoc_insertion_point(field_set:Message.recipient_id)
+}
+
+// bytes data = 3;
 inline void Message::clear_data() {
   data_.ClearToEmpty(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }

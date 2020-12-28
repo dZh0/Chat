@@ -1,10 +1,6 @@
 #include <wx/splitter.h>
 #include <assert.h>
-#include "ChatApp.h"
 #include "ChatWindow.h"
-
-wxDEFINE_EVENT(EVT_CONVERSATION, wxCommandEvent);
-wxDEFINE_EVENT(EVT_MESSAGE, wxCommandEvent);
 
 ChatWindow::ChatWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style, 	const wxString& name)
 	: wxFrame(parent, id, title, pos, size, style, name)
@@ -14,7 +10,6 @@ ChatWindow::ChatWindow(wxWindow* parent, wxWindowID id, const wxString& title, c
 	wxMenu* fileDropdown = new wxMenu;
 	{
 		fileDropdown->Append(ID_CONNECT, "&Connect...\tCtrl-C", "Connect to server.");
-		Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnConnect, this, ID_CONNECT);
 		fileDropdown->AppendSeparator();
 		fileDropdown->Append(wxID_EXIT);
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &ChatWindow::OnClose, this, wxID_EXIT);
@@ -32,47 +27,43 @@ ChatWindow::ChatWindow(wxWindow* parent, wxWindowID id, const wxString& title, c
 	wxSplitterWindow* splitter = new  wxSplitterWindow(this);
 	splitter->SetMinimumPaneSize(21);
 	convList = new ConversationList(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_SINGLE);
-	Bind(EVT_MESSAGE, &ConversationList::OnMessage, convList, ID_RECEIVE);
 	
 	messagePannel = new wxPanel(splitter, wxID_ANY);
-	//HACK - Fuggure out a way to remove emptyMessageBoard
+	//TODO Fuggure out a way to remove emptyMessageBoard
 	MessageBoard* emptyMessageBoard = new MessageBoard(messagePannel, wxID_ANY);
 	activeMessageBoard = emptyMessageBoard;
 	convList->Bind(wxEVT_LISTBOX, &ChatWindow::OnSelectMessageBoard, this);
-	Bind(EVT_MESSAGE, &MessageBoard::OnMessage, messageBoard);
 
-	inputField = new wxTextCtrl(messagePannel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	inputField = new wxTextCtrl(messagePannel, ID_SEND_MESSAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_EMPTY));
 	inputField->Bind(wxEVT_TEXT_ENTER, &ChatWindow::OnSendMessage, this);
-	inputField->Bind(wxEVT_TEXT_ENTER, &MessageBoard::OnMessage, emptyMessageBoard);
+	inputField->Disable();
 
 	wxBoxSizer* chatBox = new wxBoxSizer(wxVERTICAL);
 	chatBox->Add(emptyMessageBoard, wxSizerFlags(1).Expand());
 	chatBox->Add(inputField, wxSizerFlags(0).Expand());
 	messagePannel->SetSizer(chatBox);
 
-	// Main Window bindings
 	splitter->SplitVertically(convList, messagePannel, 200);
 
 	// Status bar
 	CreateStatusBar();
-	SetStatusText("Welcome to Chat!");
 }
 
-void ChatWindow::OnNewConversation(const wxThreadEvent& event)
+void ChatWindow::OnNewConversation(wxThreadEvent& event)
 {
-	CreateConversation(event.GetInt(), event.GetString());
+	CreateConversation(event.GetId(), event.GetString());
 }
 
-MessageBoard* ChatWindow::CreateConversation(const wxWindowID id, const wxString& name)
-{
-	MessageBoard* newCnv = new MessageBoard(messagePannel, id, wxDefaultPosition, wxDefaultSize, wxScrolledWindowStyle, name);
-	// TODO: Remove after debug
-	newCnv->AddMessage(wxString::Format("Now talking to %s.", name), wxString::Format("%i", id));
 
-	newCnv->Hide();
-	conversations.push_back(newCnv);
-	convList->Append(name, newCnv);
-	return newCnv;
+void ChatWindow::OnMessageReceived(wxThreadEvent& event)
+{
+	MessageBoard* cnv = GetConversation(event.GetId());
+	if (!cnv) //@METO: I dont think it is possible for a message to be recieved before the conversation is sent by the server but in the current implementation...
+	{
+		cnv = CreateConversation(event.GetId(), wxString::Format("Conversation_%i", event.GetId()));
+	}
+	const wxString& name = GetConversation(event.GetInt())->GetName(); //TODO: Find a better way store and retrieve client names.
+	cnv->AddMessage(event.GetString(), name);
 }
 
 
@@ -93,32 +84,70 @@ void ChatWindow::OnAbout(wxCommandEvent& event)
 	wxMessageBox("This about section will probably never be filled...", "About", wxOK | wxICON_INFORMATION);
 }
 
-void ChatWindow::OnNetworkEvent(wxThreadEvent& event)
-{
-	wxMessageBox(wxString::Format("OnNetworkEvent(%i): %s", event.GetId(), event.GetString()), "ChatWindow", wxOK | wxICON_INFORMATION);
-}
-
 void ChatWindow::OnSendMessage(wxCommandEvent& event)
 {
-	wxMessageBox("OnSendMessage()", "ChatWindow");
-	wxString message = event.GetString();
-	wxCommandEvent forward_event(EVT_MESSAGE, ID_SEND);
-	wxPostEvent(this, forward_event);
-	if (message.IsEmpty())
+	if (event.GetString().IsEmpty()) //@METO: There is no way to make wxTextValidator(wxFILTER_EMPTY) suspend event emission. Hence, the check.
 	{
 		return;
 	}
+	activeMessageBoard->AddMessage(event.GetString(), "Me"); //@METO: Directly adding the message. Might alternatevly capture the wxEVT_TEXT_ENTER event in activeMessageBoard but, considering the crappy handling, I opted for this.
+	event.SetInt(activeMessageBoard->GetId());
+	event.Skip();
+	inputField->Clear();
 }
 
-void ChatWindow::OnSelectMessageBoard(const wxCommandEvent &event)
+void ChatWindow::OnSelectMessageBoard(wxCommandEvent &event)
 {
+	ActivateMessageBoard(static_cast<MessageBoard*>(event.GetClientData()));
+}
+
+void ChatWindow::ActivateMessageBoard(MessageBoard* msgBoard)
+{
+	if (msgBoard == nullptr)
+	{
+		return;
+	}
 	wxSizer* chatBox = messagePannel->GetSizer();
-	MessageBoard* newMsgBoard = static_cast<MessageBoard*>(event.GetClientData());
-	assert(newMsgBoard != nullptr); //Should never recive a wxEVT_LISTBOX event without ClientData*. Check if ChatWindow::CreateConversation() has properly created a MessageBoard.
-	chatBox->Replace(activeMessageBoard, newMsgBoard);
+	chatBox->Replace(activeMessageBoard, msgBoard);
 	activeMessageBoard->Hide();
-	activeMessageBoard = newMsgBoard;
+	activeMessageBoard = msgBoard;
 	activeMessageBoard->Show();
 	messagePannel->Layout();
 	inputField->SetHint(wxString::Format("Write to %s . . .", activeMessageBoard->GetName()));
+	if (!inputField->IsEnabled())
+	{
+		inputField->Enable();
+	}
+}
+
+MessageBoard* ChatWindow::GetConversation(const wxWindowID id) const
+{
+	auto found = targets.find(id);
+	if (found == targets.end())
+	{
+		return nullptr;
+	}
+	else
+	{
+		return found->second;
+	}
+}
+
+MessageBoard* ChatWindow::CreateConversation(const wxWindowID id, const wxString& name)
+{
+	bool wasEmpty = convList->IsEmpty();
+	MessageBoard* cnv = GetConversation(id);
+	if (!cnv)
+	{
+		cnv = new MessageBoard(messagePannel, id);
+		targets[id] = cnv;
+	}
+	targets[id]->SetName(name);
+	convList->Append(targets[id]->GetName(), targets[id]);
+	if (wasEmpty)
+	{
+		convList->SetSelection(0);
+		ActivateMessageBoard(targets[id]);
+	}
+	return targets[id];
 }

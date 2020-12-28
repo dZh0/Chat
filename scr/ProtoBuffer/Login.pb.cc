@@ -87,6 +87,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Login_2eproto::offsets[] PROTO
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::LoginResponse, status_),
+  PROTOBUF_FIELD_OFFSET(::LoginResponse, id_),
   PROTOBUF_FIELD_OFFSET(::LoginResponse, conversations_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::NewConversation, _internal_metadata_),
@@ -99,7 +100,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Login_2eproto::offsets[] PROTO
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::LoginRequest)},
   { 6, -1, sizeof(::LoginResponse)},
-  { 13, -1, sizeof(::NewConversation)},
+  { 14, -1, sizeof(::NewConversation)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -110,11 +111,12 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_Login_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013Login.proto\"#\n\014LoginRequest\022\023\n\013credent"
-  "ials\030\001 \001(\014\"\204\001\n\rLoginResponse\022%\n\006status\030\001"
-  " \001(\0162\025.LoginResponse.Status\022\'\n\rconversat"
-  "ions\030\002 \003(\0132\020.NewConversation\"#\n\006Status\022\006"
-  "\n\002OK\020\000\022\021\n\004FAIL\020\377\377\377\377\377\377\377\377\377\001\"+\n\017NewConversa"
-  "tion\022\n\n\002id\030\001 \001(\007\022\014\n\004name\030\002 \001(\tb\006proto3"
+  "ials\030\001 \001(\014\"\220\001\n\rLoginResponse\022%\n\006status\030\001"
+  " \001(\0162\025.LoginResponse.Status\022\n\n\002id\030\002 \001(\007\022"
+  "\'\n\rconversations\030\003 \003(\0132\020.NewConversation"
+  "\"#\n\006Status\022\006\n\002OK\020\000\022\021\n\004FAIL\020\377\377\377\377\377\377\377\377\377\001\"+\n"
+  "\017NewConversation\022\n\n\002id\030\001 \001(\007\022\014\n\004name\030\002 \001"
+  "(\tb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Login_2eproto_deps[1] = {
 };
@@ -125,7 +127,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Log
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Login_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Login_2eproto = {
-  false, false, descriptor_table_protodef_Login_2eproto, "Login.proto", 238,
+  false, false, descriptor_table_protodef_Login_2eproto, "Login.proto", 250,
   &descriptor_table_Login_2eproto_once, descriptor_table_Login_2eproto_sccs, descriptor_table_Login_2eproto_deps, 3, 0,
   schemas, file_default_instances, TableStruct_Login_2eproto::offsets,
   file_level_metadata_Login_2eproto, 3, file_level_enum_descriptors_Login_2eproto, file_level_service_descriptors_Login_2eproto,
@@ -378,13 +380,17 @@ LoginResponse::LoginResponse(const LoginResponse& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       conversations_(from.conversations_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  status_ = from.status_;
+  ::memcpy(&status_, &from.status_,
+    static_cast<size_t>(reinterpret_cast<char*>(&id_) -
+    reinterpret_cast<char*>(&status_)) + sizeof(id_));
   // @@protoc_insertion_point(copy_constructor:LoginResponse)
 }
 
 void LoginResponse::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_LoginResponse_Login_2eproto.base);
-  status_ = 0;
+  ::memset(&status_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&id_) -
+      reinterpret_cast<char*>(&status_)) + sizeof(id_));
 }
 
 LoginResponse::~LoginResponse() {
@@ -419,7 +425,9 @@ void LoginResponse::Clear() {
   (void) cached_has_bits;
 
   conversations_.Clear();
-  status_ = 0;
+  ::memset(&status_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&id_) -
+      reinterpret_cast<char*>(&status_)) + sizeof(id_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -439,16 +447,23 @@ const char* LoginResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_
           _internal_set_status(static_cast<::LoginResponse_Status>(val));
         } else goto handle_unusual;
         continue;
-      // repeated .NewConversation conversations = 2;
+      // fixed32 id = 2;
       case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 21)) {
+          id_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint32>(ptr);
+          ptr += sizeof(::PROTOBUF_NAMESPACE_ID::uint32);
+        } else goto handle_unusual;
+        continue;
+      // repeated .NewConversation conversations = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           ptr -= 1;
           do {
             ptr += 1;
             ptr = ctx->ParseMessage(_internal_add_conversations(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
         } else goto handle_unusual;
         continue;
       default: {
@@ -486,12 +501,18 @@ failure:
       1, this->_internal_status(), target);
   }
 
-  // repeated .NewConversation conversations = 2;
+  // fixed32 id = 2;
+  if (this->id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFixed32ToArray(2, this->_internal_id(), target);
+  }
+
+  // repeated .NewConversation conversations = 3;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->_internal_conversations_size()); i < n; i++) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(2, this->_internal_conversations(i), target, stream);
+      InternalWriteMessage(3, this->_internal_conversations(i), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -510,7 +531,7 @@ size_t LoginResponse::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .NewConversation conversations = 2;
+  // repeated .NewConversation conversations = 3;
   total_size += 1UL * this->_internal_conversations_size();
   for (const auto& msg : this->conversations_) {
     total_size +=
@@ -521,6 +542,11 @@ size_t LoginResponse::ByteSizeLong() const {
   if (this->status() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_status());
+  }
+
+  // fixed32 id = 2;
+  if (this->id() != 0) {
+    total_size += 1 + 4;
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -558,6 +584,9 @@ void LoginResponse::MergeFrom(const LoginResponse& from) {
   if (from.status() != 0) {
     _internal_set_status(from._internal_status());
   }
+  if (from.id() != 0) {
+    _internal_set_id(from._internal_id());
+  }
 }
 
 void LoginResponse::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
@@ -582,7 +611,12 @@ void LoginResponse::InternalSwap(LoginResponse* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   conversations_.InternalSwap(&other->conversations_);
-  swap(status_, other->status_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(LoginResponse, id_)
+      + sizeof(LoginResponse::id_)
+      - PROTOBUF_FIELD_OFFSET(LoginResponse, status_)>(
+          reinterpret_cast<char*>(&status_),
+          reinterpret_cast<char*>(&other->status_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata LoginResponse::GetMetadata() const {
