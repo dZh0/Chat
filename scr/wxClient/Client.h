@@ -9,7 +9,7 @@ constexpr Uint32 ACTIVITY_CHECK_TIMEOUT = 1000;	// How long the client will wait
 class ChatClient
 {
 public:
-	virtual ~ChatClient() {};
+	virtual ~ChatClient() = default;
 
 	virtual void OnError(const std::string& errorMsg);
 	virtual void OnPing() {};

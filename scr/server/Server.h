@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include "DataBase.h"
 #include "Message.h"
 
 // SERVER SETTINGS
@@ -65,4 +66,5 @@ protected:
 	std::map<const msg::targetId, Conversation> targets = { {0, {"Global",{},false}} };
 private:
 	SendMessageResponse ForwardMessage(const ClientData& client, const msg::targetId& id, const std::string& data) const;
+	DataBase serverDataBase;
 };

@@ -1,7 +1,9 @@
 #pragma once
 #include <SDL_net.h>
 #include "../ProtoBuffer/Messages.generated.h"
-
+/// Message interface:
+/// 
+/// </summary>
 namespace msg
 {
 	enum class type
@@ -34,7 +36,6 @@ namespace msg
 	// Sending messages
 	bool SendPing(const TCPsocket socket);
 
-	//@ METO: Definition in .h to create template specializations
 	template<class T>
 	bool Send(const TCPsocket socket, msg::type type, const T& message)
 	{
@@ -56,7 +57,6 @@ namespace msg
 
 
 	// Reciveing messages
-	//@ METO: Definition in .h to create template specializations
 	template<class T>
 	const T Receive(const TCPsocket socket)
 	{
@@ -78,5 +78,5 @@ namespace msg
 	template<>
 	const msg::size Receive<msg::size>(const TCPsocket socket);
 	template<>
-	const void Receive<void>(const TCPsocket socket); //@ METO: This is my "discard" function. However, I'm unsure about the "const void" return type. 
+	const void Receive<void>(const TCPsocket socket);
 }

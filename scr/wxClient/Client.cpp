@@ -70,8 +70,6 @@ bool ChatClient::SendTextMessage(const msg::targetId target, const std::string& 
 	{
 		std::lock_guard lock(mtx); // Locking acess to [serverSocket]
 		result = msg::Send(serverSocket, msg::type::SEND_MESSAGE_REQUEST, msg);
-		//@ METO:	Initially I had listening for SEND_MESSAGE_RESPONCE here but it would lock both the main and update threads until recived.
-		//			Currently SEND_MESSAGE_RESPONCE is ignored as no sutable application is foreseen.
 	}
 	return result;
 }

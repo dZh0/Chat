@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+  
+	<Link>
+      <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\external\sqlite-snapshot-202101022356;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+	
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\external\sqlite-snapshot-202101022356;%(AdditionalIncludeDirectories</AdditionalIncludeDirectories>
+    </ClCompile>
+	
+	<PostBuildEvent>
+      <Message>Copy required .DLLs</Message>
+      <Command>xcopy "$(ProjectDir)..\external\sqlite-snapshot-202101022356\sqlite3.dll" "$(TargetDir)" /Y
+$(Command)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
