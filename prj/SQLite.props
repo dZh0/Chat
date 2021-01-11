@@ -4,19 +4,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemDefinitionGroup>
-  
 	<Link>
       <AdditionalDependencies>sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\external\sqlite-snapshot-202101022356;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\external\sqlite-3340000;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-	
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\external\sqlite-snapshot-202101022356;%(AdditionalIncludeDirectories</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\external\sqlite-3340000;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-	
 	<PostBuildEvent>
       <Message>Copy required .DLLs</Message>
-      <Command>xcopy "$(ProjectDir)..\external\sqlite-snapshot-202101022356\sqlite3.dll" "$(TargetDir)" /Y
+      <Command>xcopy "$(ProjectDir)..\external\sqlite-3340000\sqlite3.dll" "$(TargetDir)" /Y
 $(Command)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

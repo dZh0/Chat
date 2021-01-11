@@ -8,9 +8,9 @@ ChatServer::~ChatServer()
 
 bool ChatServer::Init(int port, int maxClients)
 {
-	serverDataBase = DataBase();
 	Disconnect(); //@ METO: This shouldn't be neeed unless someone calls Init() a second time. Should I remove it?
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	serverDataBase.Open("mydb2.db");
 	IPaddress hostIp;
 	if (SDLNet_ResolveHost(&hostIp, nullptr, port) < 0)
 	{

@@ -1,59 +1,52 @@
 #pragma once
+#include <functional>
 #include <sqlite3.h>
 
-// Wrapper class for data base linkage interface
 class DataBase
 {
 	public:
-		// Default constructor
 		DataBase()
 		{
-			sqlite3* ptr = db.get();	//@ METO Seems silly but "sqlite3_open("database.db", &db.get())" fails to compile...
-			if (sqlite3_open("database.db", &ptr))
-			{
-				throw std::runtime_error(sqlite3_errmsg(db.get()));
-			}
-		};
-/*
-		// Copy constuctor
-		DataBase(const DataBase& other)	: db(other.db)
-		{};
-
-		// Copy assigment
-		DataBase& operator=(const DataBase& other)
-		{
-			if (this == &other)
-			{
-				return *this;
-			}
-			db = other.db;
+			sqlite3* tmp = nullptr;
+			m_db = std::unique_ptr<sqlite3, std::function<void(sqlite3*)>> (tmp, sqlite3_close);
 		}
+
+		DataBase(const std::string& fileName): DataBase()
+		{
+			Open(fileName);
+		}
+
+		DataBase(const DataBase& other) = delete;
+
+		DataBase& operator=(const DataBase& other) = delete;
 		 
-		// Move constuctor
-		DataBase(DataBase&& other) noexcept	: db(std::exchange(other.db, nullptr))
-		{};
+		DataBase(DataBase&& other) noexcept	= default;
 
-		// Move assigment
-		DataBase& operator=(const DataBase&& other) noexcept
-		{
-			if (this == &other)
-			{
-				return *this;
-			}
-			sqlite3_close(db.get());
-			db = std::exchange(other.db, nullptr);
-			return *this;
-		}
-*/
-		// Destructor
+		DataBase& operator=(DataBase&& other) = default;
+
 		~DataBase()
 		{
-			if(db)
-			{
-				sqlite3_close(db.get());
-			}
+			Close();
 		};
+		
+		bool Open(const std::string& fileName)
+		{
+			sqlite3* tmp = nullptr;
+			int result = sqlite3_open(fileName.c_str(), &tmp);
+			if (result)
+			{
+				std::cerr << "Can't open data base: " << sqlite3_errmsg(tmp);
+				return false;
+			}
+			m_db.reset(tmp);
+			return true;
+		}
 
-	private:
-		std::shared_ptr<sqlite3> db;
+		void Close()
+		{
+			m_db.release();
+		}
+
+	protected:
+		std::unique_ptr<sqlite3, std::function<void(sqlite3*)>> m_db;
 };
