@@ -32,21 +32,19 @@ class DataBase
 		
 		bool Open(const std::string& fileName)
 		{
-			sqlite3* tmp = nullptr;
-			int result = sqlite3_open_v2(fileName.c_str(), &tmp, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
-			if (result != SQLITE_OK)
+			auto tmp = m_db.get();
+			int result = sqlite3_open(fileName.c_str(), &tmp);
+			if (result)
 			{
-				std::cerr << "Can't open data base: " << sqlite3_errmsg(tmp);
-				sqlite3_close_v2(tmp);
+				std::cerr << "Can't open data base: " << sqlite3_errmsg(m_db.get());
 				return false;
 			}
-			m_db.reset(tmp);
 			return true;
 		}
 
 		void Close()
 		{
-			m_db.release();
+			sqlite3_close(m_db.get());
 		}
 
 		void CreateTables()
