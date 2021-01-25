@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\scr\DB_Test\DataBase2.h" />
     <ClInclude Include="..\scr\server\DataBase.h" />
   </ItemGroup>
   <ItemGroup>
