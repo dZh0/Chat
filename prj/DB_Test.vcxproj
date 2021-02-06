@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\scr\DB_Test\DataBase2.h" />
-    <ClInclude Include="..\scr\server\DataBase.h" />
+    <ClInclude Include="..\scr\DB_Test\DataBase.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\scr\DB_Test\DataBase.cpp" />
     <ClCompile Include="..\scr\DB_Test\Test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
