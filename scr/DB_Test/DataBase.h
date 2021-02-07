@@ -4,10 +4,10 @@
 #include <sqlite3.h>
 
 using clientId_t = int;
-constexpr clientId_t MAX_CLIENT_ID = std::numeric_limits<clientId_t>::max();
+constexpr clientId_t MAX_CLIENT_ID = std::numeric_limits<clientId_t>::max(); //@METO: Used because for gsl::narrow<T>() I have link yet another library.
 
 using channelId_t = int;
-constexpr clientId_t MAX_CHANNEL_ID = std::numeric_limits<channelId_t>::max();
+constexpr clientId_t MAX_CHANNEL_ID = std::numeric_limits<channelId_t>::max(); //@METO: Used because for gsl::narrow<T>() I have link yet another library.
 
 using binaryData_t = std::vector<char>;
 

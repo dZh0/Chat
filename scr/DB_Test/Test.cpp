@@ -21,31 +21,34 @@ int main()
 	binaryData_t password1(str1.begin(), str1.end());
 	binaryData_t password2(str2.begin(), str2.end());
 	binaryData_t password3(str3.begin(), str3.end());
+	binaryData_t password4;
 
 	auto u1 = db.NewUser("bob@bob.bob", password1);
 	assert(u1 != std::nullopt);
-	auto u2 = db.NewUser("merry@merry.mer", password1);						// same password (OK)
+	auto u2 = db.NewUser("merry@merry.mer", password1);				// same password (OK)
 	assert(u2 != std::nullopt);
 	auto u3 = db.NewUser("paul@paul.pl", password3);
 	assert(u3 != std::nullopt);
-	assert(db.NewUser("bob@bob.bob", password2) == std::nullopt);			//non-unique account
+	assert(db.NewUser("bob@bob.bob", password2)	== std::nullopt);	//non-unique account
+	assert(db.NewUser("", password2)			== std::nullopt);	//no account provided
+	assert(db.NewUser("x@x.x", password4)		== std::nullopt);	//no password provided 
 
 	auto user1 = u1.value();
 	auto user2 = u2.value();
 	auto user3 = u3.value();
 
-	assert(db.GetUserId("merry@merry.mer", password2) == std::nullopt);		//wrong password
-	assert(db.GetUserId("x@x.x", password2) == std::nullopt);				//non-existent account
-	assert(db.GetUserId("merry@merry.mer", password1) == user2);
+	assert(db.GetUserId("merry@merry.mer", password2)	== std::nullopt);	//wrong password
+	assert(db.GetUserId("x@x.x", password2)				== std::nullopt);	//non-existent account
+	assert(db.GetUserId("merry@merry.mer", password1)	== user2);
 
-	assert(db.ChangeUserName(user1, "Bobislav") == true);
-	assert(db.ChangeUserName(1000, "Bobislav") == false);					//non-existent account ID
+	assert(db.ChangeUserName(user1, "Bobislav")	== true);
+	assert(db.ChangeUserName(1000, "Bobislav")	== false);					//non-existent account ID
 
-	assert(db.ChangeUserPassword(1000, password1, password2) == false);		//non-existent account ID
-	assert(db.ChangeUserPassword(user2, password2, password1) == false);	//wrong old password
-	assert(db.ChangeUserPassword(user2, password1, password2) == true);
-	assert(db.GetUserId("merry@merry.mer", password1) == std::nullopt);		// old password now wrong
-	assert(db.GetUserId("merry@merry.mer", password2) == user2);			// new password now correct
+	assert(db.ChangeUserPassword(1000, password1, password2)	== false);	//non-existent account ID
+	assert(db.ChangeUserPassword(user2, password2, password1)	== false);	//wrong old password
+	assert(db.ChangeUserPassword(user2, password1, password2)	== true);
+	assert(db.GetUserId("merry@merry.mer", password1)	== std::nullopt);	// old password now wrong
+	assert(db.GetUserId("merry@merry.mer", password2)	== user2);			// new password now correct
 
 	//////////////////////////////
 	// Channel tests
@@ -58,9 +61,9 @@ int main()
 	auto channel1 = ch1.value();
 	auto channel2 = ch2.value();
 
-	assert(db.ChangeChannelName(channel1, "Local") == true);
-	assert(db.ChangeChannelName(channel2) == true);
-	assert(db.ChangeChannelName(1000, "Local") == false);	// non-existent channel ID
+	assert(db.ChangeChannelName(channel1, "Local")	== true);
+	assert(db.ChangeChannelName(channel2)			== true);
+	assert(db.ChangeChannelName(1000, "Local")		== false);	// non-existent channel ID
 
 	assert(db.AddUserToChannel(user1, channel1) == true);
 	assert(db.AddUserToChannel(user1, channel2) == true);
@@ -96,12 +99,12 @@ int main()
 	binaryData_t message3(msg3.begin(), msg3.end());
 	binaryData_t message4;
 
-	assert(db.RecordMessage(user1, channel2, message1)==true);
-	assert(db.RecordMessage(user2, channel1, message2)==true);
-	assert(db.RecordMessage(user3, channel1, message3)==true);
-	assert(db.RecordMessage(1000, channel1, message3) == false);	// non-existing user
-	assert(db.RecordMessage(user3, 1000, message3) == false);		// non-existing channel
-	assert(db.RecordMessage(user3, channel1, message4) == false);	// empty message
+	assert(db.RecordMessage(user1, channel2, message1)	== true);
+	assert(db.RecordMessage(user2, channel1, message2)	== true);
+	assert(db.RecordMessage(user3, channel1, message3)	== true);
+	assert(db.RecordMessage(1000, channel1, message3)	== false);	// non-existing user
+	assert(db.RecordMessage(user3, 1000, message3)		== false);	// non-existing channel
+	assert(db.RecordMessage(user3, channel1, message4)	== false);	// empty message
 	
 	assert(db.GetMessagesToChannel(channel1).size() == 2);
 	assert(db.DeleteMessages(1.f) == 0);
@@ -109,38 +112,38 @@ int main()
 	assert(db.GetMessagesToChannel(channel1).size() == 0);
 
 	//////////////////////////////
-	// User linkage test
+	// User table linkage test
 	//////////////////////////////
 
 	assert(db.AddUserToChannel(user1, channel1) == true);
 
 	// before removal
-	assert(db.GetUsersOfChannel(channel1).size() == 3);
-	assert(db.RecordMessage(user1, channel1, message1) == true);
-	assert(db.GetMessagesToChannel(channel1)[0].first == user1);
+	assert(db.GetUsersOfChannel(channel1).size()		== 3);
+	assert(db.RecordMessage(user1, channel1, message1)	== true);
+	assert(db.GetMessagesToChannel(channel1)[0].first	== user1);
 
-	assert(db.DeleteUser(user1) == true);
+	assert(db.DeleteUser(user1) == true);  // REMOVAL
 
 	// after removal
-	assert(db.GetUsersOfChannel(channel1).size() == 2);
-	assert(db.RecordMessage(user1, channel2, message1) == false);
-	assert(db.GetMessagesToChannel(channel1)[0].first == NULL);
+	assert(db.GetUsersOfChannel(channel1).size()		== 2);
+	assert(db.RecordMessage(user1, channel2, message1)	== false);
+	assert(db.GetMessagesToChannel(channel1)[0].first	== NULL);
 
 	//////////////////////////////
-	// Channel linkage test
+	// Channel table linkage test
 	//////////////////////////////
 
 	// before removal
-	assert(db.GetUsersOfChannel(channel2).size() == 1);
-	assert(db.RecordMessage(user2, channel2, message1) == true);
-	assert(db.GetMessagesToChannel(channel2).size() == 1);
+	assert(db.GetUsersOfChannel(channel2).size()		== 1);
+	assert(db.RecordMessage(user2, channel2, message1)	== true);
+	assert(db.GetMessagesToChannel(channel2).size()		== 1);
 	
-	assert(db.DeleteChannel(channel2) == true);
+	assert(db.DeleteChannel(channel2) == true); // REMOVAL
 
 	// after removal
-	assert(db.GetUsersOfChannel(channel2).size() == 0);
-	assert(db.RecordMessage(user2, channel2, message1) == false);
-	assert(db.GetMessagesToChannel(channel2).size() == 0);
+	assert(db.GetUsersOfChannel(channel2).size()		== 0);
+	assert(db.RecordMessage(user2, channel2, message1)	== false);
+	assert(db.GetMessagesToChannel(channel2).size()		== 0);
 
 	return 0;
 }
