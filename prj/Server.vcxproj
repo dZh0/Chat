@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\scr\Network\Network.h" />
     <ClInclude Include="..\scr\server\DataBase.h" />
     <ClInclude Include="..\scr\server\Server.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\scr\Network\Network.cpp" />
     <ClCompile Include="..\scr\server\main_Server.cpp" />
     <ClCompile Include="..\scr\server\Server.cpp" />
   </ItemGroup>

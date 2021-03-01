@@ -2,13 +2,30 @@
 
 #include <vector>
 #include <string>
-#include "DataBase.h"
+#include <memory>
+#include <chrono>
+//#include "DataBase.h"
 #include "Message.h"
 
 // SERVER SETTINGS
 constexpr Uint32 ACTIVITY_CHECK_TIMEOUT = 1000;	// How long the server will wait for activity (in [ms]);
 constexpr Uint32 NOTICE_TIME = 5000;			// How long before disconnecting, the server will send a check ping to the client (in [ms]) 
 constexpr Uint32 INACTIVITY_TIME = 10000;		// How long a client must be inactive to be checked from the server (in [ms])
+
+using binary_t = std::vector<std::byte>;
+
+
+namespace network
+{
+	class ISocket
+	{
+	public:
+		virtual bool IsReady() = 0;
+	};
+	bool Init();
+	void Quit();
+	std::unique_ptr<ISocket> Open(int port, int maxClients);
+}
 
 struct ClientData
 {
@@ -21,7 +38,6 @@ struct ClientData
 	std::vector<msg::targetId> conversations = {};
 };
 
-// The idea behind "conversations" is to facilitate messaging offline clients by targeting their conversations. (that will not be removed when the client disconnects)
 struct Conversation
 {
 	std::string name = "Global";
@@ -34,8 +50,10 @@ class ChatServer
 public:
 	virtual ~ChatServer();
 
+	virtual bool Init2(int port, int maxClients);
 	virtual bool Init(int port, int maxClients = 1);
 	virtual bool Update();
+	virtual bool Update(float delaySeconds);
 	virtual void OnMessageReceived(ClientData& client);
 	virtual void Disconnect();
 
@@ -57,14 +75,17 @@ public:
 
 protected:
 	msg::targetId clientIdCounter = 1;
-	TCPsocket listeningSocket = nullptr;
-	SDLNet_SocketSet socketSet = nullptr;
+	//TCPsocket listeningSocket = nullptr;
+	
+	std::unique_ptr<network::ISocket> socket{nullptr};
+
+	//SDLNet_SocketSet socketSet = nullptr;
 	std::vector<ClientData> clientArr;
 	bool clientArrDirty = false;
 	Uint32 nextActivityCheckSceduleTime = 0xFFFFFFFF;
-	unsigned maxConnections = 1;
+	unsigned maxConnections{0};
 	std::map<const msg::targetId, Conversation> targets = { {0, {"Global",{},false}} };
 private:
 	SendMessageResponse ForwardMessage(const ClientData& client, const msg::targetId& id, const std::string& data) const;
-	DataBase serverDataBase;
+//	DataBase serverDataBase;
 };

@@ -17,12 +17,18 @@
     <ClInclude Include="..\scr\server\DataBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\scr\Network\Network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\scr\server\main_Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\scr\server\Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\scr\Network\Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
