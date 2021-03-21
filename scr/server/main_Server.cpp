@@ -4,22 +4,23 @@
 #include "Server.h"
 
 
-constexpr auto PORT = 1234;				// The port the server will open to listen for client connections;
-constexpr auto MAX_CLIENTS = 5;			// The maximum number of clients able to connect to the server;
-constexpr auto MAIN_LOOP_DELAY = 1.f;	// The delay after server completes its main loop;
+constexpr int PORT = 1234;				// The port the server will open to listen for client connections;
+constexpr int MAX_CLIENTS = 5;			// The maximum number of clients able to connect to the server;
+constexpr Uint32 MAIN_LOOP_DELAY = 800;	// The delay after server completes its main loop;
 
 
 int main(int argc, char* argv[])
 {
 	std::cout << "SDLNet_Init()...\n";
-	if (!network::Init())
+	if (SDLNet_Init() < 0)
 	{
+		std::cerr << "SDLNet_Init: " << SDLNet_GetError() << "\n";
 		return EXIT_FAILURE;
 	}
 
 	ChatServer Server;
 	std::cout << "Opening listening port " << PORT << "...\n";
-	if (!Server.Init2(PORT, MAX_CLIENTS))
+	if (!Server.Init(PORT, MAX_CLIENTS))
 	{
 		return EXIT_FAILURE;
 	}
@@ -27,12 +28,15 @@ int main(int argc, char* argv[])
 	bool isTerminated = false;
 	while (!isTerminated)
 	{
-		if (!Server.Update(MAIN_LOOP_DELAY))
+		if (!Server.Update())
 		{
 			isTerminated = true;
 		}
+		else
+		{
+			SDL_Delay(MAIN_LOOP_DELAY);
+		}
 	}
-
-	network::Quit();
+	SDLNet_Quit();
 	return 0;
 }

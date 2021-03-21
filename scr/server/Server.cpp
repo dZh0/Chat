@@ -1,5 +1,4 @@
-﻿#include <algorithm>
-#include <iostream>
+﻿#include <iostream>
 #include "Server.h"
 
 ChatServer::~ChatServer()
@@ -7,28 +6,11 @@ ChatServer::~ChatServer()
 	Disconnect();
 }
 
-bool ChatServer::Init2(int port, int maxClients)
-{
-	socket = network::Open(port, maxClients + 1);	// We need SocketSet size = maxClients + 1 bacuse it also stores the listening socket;
-	if (!socket)
-	{
-		return false;
-	}
-	clientArr.reserve(maxClients);
-	return true;
-}
-
 bool ChatServer::Init(int port, int maxClients)
 {
 	Disconnect(); //@ METO: This shouldn't be neeed unless someone calls Init() a second time. Should I remove it?
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-//	serverDataBase.Open("mydb2.db");
-	socket = std::move(network::Open(port, maxClients));
-	if (!socket)
-	{
-		return false;
-	}
-	//TODO: REMOVE
+	serverDataBase.Open("mydb2.db");
 	IPaddress hostIp;
 	if (SDLNet_ResolveHost(&hostIp, nullptr, port) < 0)
 	{
@@ -52,7 +34,6 @@ bool ChatServer::Init(int port, int maxClients)
 		std::cerr << "SDLNet_AddSocket: " << SDLNet_GetError() << "\n";
 		return false;
 	}
-	//TODO: REMOVE (END)
 	maxConnections = maxClients;
 	if (clientArr.size() > maxClients)
 	{
@@ -66,7 +47,7 @@ bool ChatServer::Init(int port, int maxClients)
 	return true;
 }
 
-bool ChatServer::Update()
+bool ChatServer::Update() //TODO: Check thoroughly
 {
 	// Check sockets
 	int socketsToProcess = SDLNet_CheckSockets(socketSet, ACTIVITY_CHECK_TIMEOUT);
@@ -126,21 +107,6 @@ bool ChatServer::Update()
 		std::cout << "Cleaning disconnected clients...\n";
 		DeleteDisconnectdClients();
 	}
-	return true;
-}
-
-bool ChatServer::Update(float delaySeconds)
-{
-	std::cout << "Update...\n";
-	if(socket.get()->IsReady())
-	//AcceptConnections();
-	//std::ranges::for_each(clients, [this](Client& source) {Recieve(source); });
-	//std::ranges::for_each(inMessages, [this](IMessage& msg) {Process(msg); });
-	//inMessages.clear();
-	//std::ranges::for_each(outMessages, [this](IMessage& msg) {Send(msg); });
-	//outMessages.clear();
-	// Clear disconnected clients;
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	return true;
 }
 
